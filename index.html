@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Гайд по фронтенду</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: одна колонка для чтения; цвета кодируют типы работы, как дорожки на таймлайне Performance */
+:root {
+  --bg: #f4f6f8; --panel: #ffffff; --fg: #17202b; --muted: #566373; --line: #d5dce4;
+  --macro: #2563c9; --micro: #b86e00; --frame: #c02672; --on: #ffffff;
+  --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11161d; --panel: #1a212b; --fg: #e8edf3; --muted: #9ba8b8; --line: #303a47;
+  --macro: #6ea2f5; --micro: #eba93f; --frame: #f06aa8; --on: #11161d; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11161d; --panel: #1a212b; --fg: #e8edf3; --muted: #9ba8b8; --line: #303a47;
+  --macro: #6ea2f5; --micro: #eba93f; --frame: #f06aa8; --on: #11161d; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--sans); }
+.layout { max-width: 1340px; margin: auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: 190px minmax(0, 1fr) 310px; gap: 32px; align-items: start; }
+.viz { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); display: grid; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-size: 14px; line-height: 1.35; min-width: 0; }
+.viz h2 { font-size: 16px; margin: 0; }
+.viz-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.viz-steps li { padding: 5px 8px; border-left: 3px solid var(--line); color: var(--muted); }
+.viz-steps li.now, .loop li.now { color: var(--fg); font-weight: 600; background: var(--bg); border-left-color: var(--frame); }
+.loop li.now { outline: 2px solid var(--frame); outline-offset: 2px; border-radius: 2px; }
+.viz-label { font-weight: 600; color: var(--muted); font-size: 12px; margin-bottom: 3px; }
+.flask { position: relative; width: min(100%, 170px); margin: 8px auto 0; }
+.flask::before { content: ""; position: absolute; z-index: 1; top: 0; left: -8px; right: -8px; height: 5px; background: var(--fg); border-radius: 3px; }
+.stack { height: 190px; overflow: hidden; display: flex; flex-direction: column-reverse; justify-content: flex-start; gap: 4px; padding: 8px; background: var(--bg); border: 3px solid var(--fg); border-top: 0; }
+.stack .chip { display: block; text-align: center; padding: 9px 5px; }
+.note { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--frame); border-radius: 4px; padding: 14px 16px; margin: 0 0 14px; }
+.note ul { margin: 8px 0 0; padding-left: 20px; }
+.queue { min-height: 38px; display: flex; flex-wrap: wrap; gap: 3px; padding: 4px; border: 1px dashed var(--line); border-radius: 6px; }
+.chip { font: 600 12px/1.3 var(--mono); padding: 5px 7px; border-radius: 3px; color: var(--on); overflow-wrap: anywhere; }
+.chip.macro { background: var(--macro); } .chip.micro { background: var(--micro); } .chip.frame { background: var(--frame); }
+.viz-note { min-height: 58px; margin: 0; }
+.viz-controls { display: flex; gap: 8px; }
+.viz-controls button { flex: 1; padding: 8px; }
+.viz-controls #viz-next { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+@media (max-width: 1180px) {
+  .layout { grid-template-columns: 160px minmax(0, 1fr) 250px; gap: 22px; }
+}
+.menu { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); display: grid; gap: 2px; font-size: 14px; line-height: 1.35; }
+.menu a { color: var(--muted); text-decoration: none; padding: 8px 10px; border-left: 2px solid var(--line); }
+.menu a:hover { color: var(--fg); }
+.menu a:focus-visible { outline: 3px solid var(--frame); outline-offset: 1px; }
+.menu a.active { color: var(--fg); font-weight: 600; border-left-color: var(--frame); }
+section { scroll-margin-top: 72px; }
+.burger { display: none; }
+.menu-topic { font-weight: 700; font-size: 15px; color: var(--fg); padding: 12px 0 6px; }
+.menu-topic:first-child { padding-top: 0; }
+.menu { max-height: calc(100dvh - 40px); overflow-y: auto; }
+.part { font-size: 26px; font-weight: 700; line-height: 1.2; padding-top: 22px; border-top: 2px solid var(--line); }
+.compare { font-family: var(--mono); font-size: 14px; }
+@media (max-width: 1000px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 220px; padding-top: 72px; }
+  .wrap { grid-column: 1; grid-row: 1; }
+  .viz { grid-column: 2; grid-row: 1; }
+  .burger { display: block; position: fixed; z-index: 30; top: calc(env(safe-area-inset-top, 0px) + 12px); left: calc(env(safe-area-inset-left, 0px) + 12px); width: 44px; padding: 0; font-size: 22px; line-height: 1; background: var(--panel); color: var(--fg); border: 1px solid var(--line); }
+  .menu { position: fixed; z-index: 20; top: 0; bottom: 0; left: 0; width: min(280px, 85vw); align-content: start; overflow-y: auto; background: var(--bg); border-right: 1px solid var(--line); padding: calc(env(safe-area-inset-top, 0px) + 68px) 12px 24px calc(env(safe-area-inset-left, 0px) + 12px); transform: translateX(-100%); visibility: hidden; transition: transform 0.2s ease, visibility 0.2s; }
+  .menu.open { transform: none; visibility: visible; }
+  .menu a { min-height: 44px; display: flex; align-items: center; }
+  .backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.45); }
+}
+@media (max-width: 620px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .viz { grid-column: 1; grid-row: 1; position: static; }
+  .wrap { grid-column: 1; grid-row: 2; }
+}
+@keyframes drop { from { transform: translateY(-46px); opacity: 0; } to { transform: none; opacity: 1; } }
+.chip.enter { animation: drop 0.7s ease-out; }
+@media (prefers-reduced-motion: reduce) { .menu { transition: none; } .chip.enter { animation: none; } }
+.wrap { display: grid; gap: 36px; min-width: 0; }
+.wrap > * { min-width: 0; }
+h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; text-wrap: balance; }
+h2 { font-size: 21px; line-height: 1.3; margin: 0 0 10px; text-wrap: balance; color: var(--macro); }
+h3 { font-size: 18px; font-weight: 700; color: var(--frame); margin: 26px 0 10px; }
+h3 .m, h3 .u, h3 .f { color: inherit; }
+p { margin: 0 0 12px; } p:last-child { margin-bottom: 0; }
+code, pre { font-family: var(--mono); font-size: 14px; }
+.lead { color: var(--muted); margin: 0; }
+.answer { font-size: 18px; font-weight: 600; }
+.loop { margin: 0; padding: 16px 16px 16px 40px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+.loop li + li { margin-top: 6px; }
+.m { color: var(--macro); font-weight: 700; } .u { color: var(--micro); font-weight: 700; } .f { color: var(--frame); font-weight: 700; }
+.scroll { overflow-x: auto; }
+.timeline { min-width: 600px; display: grid; gap: 16px; padding-block: 4px; }
+.row-title { font-weight: 600; margin-bottom: 4px; }
+.track { position: relative; height: 44px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; }
+.track span { position: absolute; top: 6px; bottom: 6px; border-radius: 2px; }
+.track .mt { background: var(--macro); } .track .ut { background: var(--micro); } .track .ft { background: var(--frame); }
+.track .long { color: var(--on); font: 600 13px/32px var(--mono); text-align: center; }
+.tick { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--muted); }
+.scale { position: relative; height: 22px; font: 12px var(--mono); color: var(--muted); }
+.scale b { position: absolute; font-weight: 400; transform: translateX(-50%); }
+.scale b:first-child { transform: none; } .scale b:last-child { transform: translateX(-100%); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; margin-top: 10px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+button { font: 600 15px var(--sans); color: var(--on); background: var(--macro); border: 0; border-radius: 6px; padding: 10px 16px; min-height: 44px; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--frame); outline-offset: 2px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.stat strong { display: block; font: 600 24px var(--mono); font-variant-numeric: tabular-nums; }
+.stat small { color: var(--muted); font-size: 13px; line-height: 1.35; display: block; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 15px; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; } th { font-weight: 600; color: var(--muted); }
+.why { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 14px; }
+.why > div { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
+pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+.output { margin-top: 10px; min-height: 120px; }
+.gap { margin-top: 12px; }
+@media (max-width: 480px) { .stats { grid-template-columns: 1fr; } h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+
+<button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="menu">☰</button>
+<div class="backdrop" id="backdrop" hidden></div>
+<div class="layout">
+<nav class="menu" id="menu" aria-label="Темы">
+  <div class="menu-topic">Event Loop</div>
+  <a href="#loop">Один виток цикла</a>
+  <a href="#during">Задачи на лету</a>
+  <a href="#raf">Как часто вызывается rAF</a>
+  <a href="#between">Циклы между кадрами</a>
+  <a href="#blocking">Что блокирует перерисовку</a>
+  <a href="#frame-time">Когда рисуется кадр</a>
+  <a href="#stale">Отмена кадра</a>
+  <a href="#long-render">Долгая отрисовка</a>
+  <a href="#types">Что macro, что micro</a>
+  <a href="#source">Клик или колбэк</a>
+  <a href="#apis">Как работают API</a>
+  <a href="#order">Проверить порядок</a>
+  <div class="menu-topic">React</div>
+  <a href="#scheduler">Scheduler</a>
+  <a href="#phases">Render и Commit</a>
+  <a href="#reconciliation">Reconciliation и key</a>
+  <a href="#concurrent">Transition и Suspense</a>
+  <a href="#hydration">Hydration</a>
+  <a href="#react18">React 18</a>
+  <a href="#react19">React 19</a>
+  <div class="menu-topic">Next.js</div>
+  <a href="#next-rendering">Способы рендеринга</a>
+  <div class="menu-topic">JavaScript</div>
+  <a href="#promises">Promise</a>
+  <a href="#websocket">WebSocket</a>
+  <a href="#throttle-debounce">Throttle и debounce</a>
+  <a href="#rotate">Поворот массива</a>
+  <div class="menu-topic">Архитектура</div>
+  <a href="#solid">SOLID</a>
+  <a href="#patterns">Паттерны</a>
+</nav>
+<div class="wrap">
+  <header>
+    <h1>Гайд по фронтенду</h1>
+    <p class="lead">Event Loop, React, Next.js, JavaScript и архитектура.</p>
+    <div class="part" style="margin-top:22px">Event Loop</div>
+  </header>
+
+  <section id="loop">
+    <h2>Один виток цикла</h2>
+    <ol class="loop">
+      <li>Взять <span class="m">одну macrotask</span> и выполнить до конца.</li>
+      <li>Выполнить <span class="u">все microtasks</span>, включая те, что появились по ходу.</li>
+      <li><strong>Только если подошло время кадра:</strong> <span class="f">rAF → layout → paint → composite</span>.</li>
+    </ol>
+    <p class="gap">* Цикл идёт по кругу: 1 → 2 → 3 → 1 …</p>
+    <div class="note gap">
+      <strong>Если работа не укладывается в кадр, перерисовка кадра (пункт 3) пропускается, и анимация дёргается.</strong>
+      <p class="gap">При 60 Гц на кадр есть 16,6 мс: перерисовка пропустится, если macro, одна micro или все micro в сумме идут дольше. Например, работа на 40 мс пропустит 2 кадра, в 16,67 и 33,33 мс, а новый кадр появится на экране в 50 мс.</p>
+    </div>
+  </section>
+
+  <section id="during">
+    <h2>Попадут ли задачи, созданные на лету, в этот же цикл?</h2>
+    <p class="answer">Micro да, до перерисовки. Macro нет, она ждёт следующего витка.</p>
+    <p><strong>Новая macro</strong>, например <code>setTimeout</code> из задачи, встаёт в очередь macro. Перед ней браузер может нарисовать кадр.</p>
+    <p><strong>Новая micro</strong> выполнится на этом же шаге. Создать её может и macro, и другая micro.</p>
+    <p>Из macro: задача ставит microtask в очередь, а выполнится та, когда macro закончится и стек опустеет.</p>
+    <p>Из micro: пока идёт одна microtask, она может поставить ещё одну. Новая попадает в ту же очередь и выполнится на этом же шаге, до кадра и до следующей macro.</p>
+    <p><strong>Поэтому мелкие micro могут затормозить кадр.</strong> Даже если они укладываются в кадр, одна из них может создать тяжёлую micro или длинную цепочку micro. Всё это выполнится до перерисовки: кадр задержится, а если работа займёт больше 16,6 мс, следующие кадры будут пропущены.</p>
+    <pre>setTimeout(() => {                 // macro
+  queueMicrotask(() => {           // micro 1: поставила macro
+    queueMicrotask(() => {         // micro 2: поставила micro 1
+      console.log("micro 2");
+    });
+    console.log("micro 1");
+  });
+  console.log("macro");
+});
+// Вывод: macro, micro 1, micro 2</pre>
+    <p class="gap">Шаг 2 заканчивается, только когда очередь microtasks пуста. Похожий сценарий показан в панели «Стек и очереди».</p>
+  </section>
+
+  <section id="raf">
+    <h2>Как часто вызывается rAF?</h2>
+    <p class="answer">Раз в кадр: при 60 Гц каждые 16,67 мс (1000 ÷ 60).</p>
+    <p>Частоту задаёт экран: при 120 Гц будет 8,33 мс. Это не таймер, поэтому если главный поток занят, кадр пропускается и следующий вызов приходит позже.</p>
+    <p>Важная деталь: rAF срабатывает один раз. Чтобы анимация продолжалась, колбэк сам снова вызывает <code>requestAnimationFrame</code>. Несколько колбэков, поставленных до кадра, выполнятся все в этом кадре.</p>
+  </section>
+
+  <section id="between">
+    <h2>Успевает ли пройти несколько циклов между кадрами?</h2>
+    <p class="answer">Да, если задачи короткие, витков может быть много. А может не быть ни одного полного кадра, если задача длинная.</p>
+    <div class="scroll"><div class="timeline" id="timeline" role="img" aria-label="Две временные шкалы на 50 миллисекунд. На первой короткие задачи и отрисовка каждые 16,67 мс. На второй задача длиной 40 мс, из-за которой два кадра пропущены."></div></div>
+    <div class="legend">
+      <span><i style="background:var(--macro)"></i>macrotask</span>
+      <span><i style="background:var(--micro)"></i>microtasks</span>
+      <span><i style="background:var(--frame)"></i>rAF и отрисовка</span>
+      <span>Пунктир: момент кадра</span>
+    </div>
+    <p class="gap">Шкалы показывают схему, а длительности условные. Ниже настоящий замер: страница гоняет короткие задачи через <code>MessageChannel</code> и считает, сколько их проходит между кадрами в твоём браузере.</p>
+    <button id="measure" type="button">Замерить ещё раз</button>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><strong id="s-frame">…</strong><small>мс между вызовами rAF</small></div>
+      <div class="stat"><strong id="s-tasks">…</strong><small>macrotasks в среднем между кадрами</small></div>
+      <div class="stat"><strong id="s-hz">…</strong><small>Гц, частота кадров по замеру</small></div>
+    </div>
+  </section>
+
+  <section id="blocking">
+    <h2>Что блокирует перерисовку?</h2>
+    <p class="answer">И macro, и micro. Браузер рисует, только когда главный поток свободен.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Что выполняется</th><th>Заблокирует на 40 мс?</th><th>Почему</th></tr></thead>
+      <tbody>
+        <tr><td>Одна macro на 40 мс</td><td><strong>Да</strong></td><td>задачу нельзя прервать посередине</td></tr>
+        <tr><td>Одна micro на 40 мс</td><td><strong>Да</strong></td><td>по той же причине</td></tr>
+        <tr><td>Много мелких micro, в сумме 40 мс</td><td><strong>Да</strong></td><td>очередь выполняется целиком, кадр не вклинится</td></tr>
+        <tr><td>Много мелких macro, в сумме 40 мс</td><td><strong>Обычно нет</strong></td><td>между ними браузер может нарисовать кадр</td></tr>
+      </tbody>
+    </table></div>
+    <pre class="gap">Мелкие micro:  [m][m][m][m][m][m][m][m] ... 40 мс подряд → кадр
+Мелкие macro:  [M][M][M] кадр [M][M][M] кадр [M][M]</pre>
+    <p class="gap">Работа занимает те же 40 мс, но мелкие macro дают браузеру рисовать между ними.</p>
+    <p>Поэтому разбивка тяжёлой работы на microtasks не помогает:</p>
+    <pre>// Не помогает: кадр не вклинится, пока очередь не опустеет
+for (const item of items) {
+  queueMicrotask(() => process(item));
+}
+
+// Помогает: каждый setTimeout это отдельная macrotask
+for (const item of items) {
+  setTimeout(() => process(item));
+}</pre>
+    <p class="gap">С <code>await</code> то же самое: если промис уже выполнен, код после него продолжится как microtask, и паузы для отрисовки не будет.</p>
+  </section>
+
+  <section id="frame-time">
+    <h2>Когда браузер рисует кадр</h2>
+    <p class="answer">После каждого витка браузер проверяет, настало ли время кадра. Текущую задачу он никогда не прерывает.</p>
+    <h3>Правила</h3>
+    <ul>
+      <li><strong>Кадр:</strong> при 60 Гц его момент наступает каждые 16,67 мс по сигналу экрана.</li>
+      <li><strong>Micro:</strong> идут вне очереди, все сразу после текущей macro.</li>
+      <li><strong>Macro:</strong> строго по одной за виток.</li>
+      <li><strong>Время кадра не настало:</strong> браузер может взять следующую macro.</li>
+      <li><strong>Время кадра настало во время задачи:</strong> браузер ждёт конца macro и всех micro. Лимита на ожидание нет.</li>
+      <li><strong>Менять на экране нечего:</strong> перерисовки может не быть.</li>
+    </ul>
+    <h3>Пример: кадр опоздал</h3>
+    <pre>0 мс      macro 1
+10 мс     macro 2: время кадра не настало, значит можно
+16,67 мс  момент кадра: macro 2 идёт, браузер ждёт
+20 мс     macro 2 и micro закончились → перерисовка, опоздание 3,33 мс
+22 мс     перерисовка закончилась (допустим, заняла 2 мс)
+33,33 мс  следующий момент кадра</pre>
+    <p class="gap"><strong>Опоздание не сдвигает следующие кадры.</strong> Следующий момент остаётся в 33,33 мс, поэтому на работу до него есть не 16,67 мс, а около 11 мс.</p>
+    <h3>Пример: кадр пропущен</h3>
+    <pre>0 мс      старт задачи на 40 мс
+16,67 мс  момент кадра, задача идёт
+33,33 мс  ещё один момент кадра, задача идёт
+40 мс     задача закончилась → браузер готовит один кадр
+50 мс     ближайший сигнал экрана</pre>
+    <p class="gap">Пропуск не решается заранее: за время задачи прошло несколько моментов кадра, а нарисовать можно только один, с актуальным состоянием. Браузер может подготовить кадр сразу после задачи или ближе к сигналу экрана, это зависит от браузера.</p>
+    <h3>Почему куски macro не блокируют кадр</h3>
+    <p>За один виток выполняется одна macro, поэтому новая macro из <code>postMessage</code> ждёт следующего витка, а перед ним браузер проверяет время кадра.</p>
+    <pre>Виток 1: кусок macro 5 мс → все micro → кадр, если пора
+Виток 2: кусок macro 5 мс → все micro → кадр, если пора</pre>
+    <p class="gap"><strong>Ограничение:</strong> лимит 5 мс считает только код внутри куска. Micro выполнятся уже после него, и тяжёлые micro всё равно задержат кадр:</p>
+    <pre>[кусок macro 5 мс] [micro 30 мс] → кадр задержался</pre>
+    <p class="gap">Разбивка работает, только если короткие и macro, и все micro после неё.</p>
+  </section>
+
+  <section id="stale">
+    <h2>Отменяется ли кадр, если он уже не актуален?</h2>
+    <p class="answer">Отменять нечего: заранее кадр не считается.</p>
+    <p>Браузер считает кадр на шаге 3 и берёт DOM и стили такими, какие они в этот момент. Поэтому устаревшего кадра не бывает: рисуется последнее состояние.</p>
+    <p><strong>Если DOM менялся несколько раз между кадрами,</strong> на экран попадёт только итог. Промежуточные значения никто не увидит.</p>
+    <p><strong>Если кадр пропущен,</strong> он не встаёт в очередь и не догоняется. Следующий кадр просто покажет актуальное состояние, поэтому анимация выглядит как рывок.</p>
+    <p><strong>Если отрисовка уже началась,</strong> она не прерывается: это такая же работа в главном потоке, и новые задачи ждут её конца.</p>
+    <p>Колбэк rAF при пропуске кадра не теряется: он выполнится один раз перед следующей отрисовкой.</p>
+  </section>
+
+  <section id="long-render">
+    <h2>Может ли сама отрисовка идти дольше кадра?</h2>
+    <p class="answer">Да. Тогда следующий кадр пропускается, как и при длинной задаче.</p>
+    <p>Rendering в главном потоке (rAF, layout, paint) не прерывается. Пока он идёт, момент следующего кадра проходит впустую, а macro и micro ждут. Новая отрисовка не запустится поверх текущей: второй нет, пока не закончится первая.</p>
+    <pre>0 мс      отрисовка началась (длится 25 мс)
+16,67 мс  момент кадра пропущен
+25 мс     отрисовка закончилась, идут задачи
+33,33 мс  следующий кадр</pre>
+    <p class="gap"><strong>Важные данные, пришедшие во время отрисовки, не теряются.</strong> Событие ждёт в очереди, затем записывает их в DOM, и ближайший кадр их покажет. Пропуск кадра означает задержку, а не потерю. Не увидеть можно только промежуточное значение, если до кадра его перезаписали новым. Этот сценарий есть в конце анимации.</p>
+    <p>Обычно это тяжёлые layout и paint: огромный DOM, чтение размеров вперемешку с записью в rAF, дорогие тени и фильтры.</p>
+  </section>
+
+  <section id="types">
+    <h2>Что macro, что micro и почему</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Источник</th><th>Тип</th><th>Откуда приходит</th></tr></thead>
+      <tbody>
+        <tr><td>Запуск <code>&lt;script&gt;</code></td><td class="m">macro</td><td>браузер загрузил скрипт</td></tr>
+        <tr><td>click, input, scroll</td><td class="m">macro</td><td>пользователь</td></tr>
+        <tr><td><code>setTimeout</code>, <code>setInterval</code></td><td class="m">macro</td><td>истёк таймер</td></tr>
+        <tr><td><code>MessageChannel</code>, <code>postMessage</code></td><td class="m">macro</td><td>доставка сообщения</td></tr>
+        <tr><td>Ответ сети</td><td class="m">macro</td><td>сеть, эта задача резолвит промис <code>fetch</code></td></tr>
+        <tr><td><code>.then</code>, <code>.catch</code>, код после <code>await</code></td><td class="u">micro</td><td>текущий код завершил шаг</td></tr>
+        <tr><td><code>queueMicrotask</code></td><td class="u">micro</td><td>текущий код</td></tr>
+        <tr><td><code>MutationObserver</code></td><td class="u">micro</td><td>текущий код изменил DOM</td></tr>
+        <tr><td><code>requestAnimationFrame</code></td><td class="f">ни то, ни другое</td><td>отдельный список, шаг отрисовки</td></tr>
+      </tbody>
+    </table></div>
+    <div class="why">
+      <div>
+        <p><span class="m">Почему macro по одной</span></p>
+        <p>Это отдельные внешние события. Между ними браузер получает шанс нарисовать кадр и обработать клик. Если бы очередь выполнялась целиком, страница зависала бы.</p>
+      </div>
+      <div>
+        <p><span class="u">Почему micro все сразу</span></p>
+        <p>Это продолжение уже идущей работы. Пока цепочка <code>.then</code> не закончилась, ни клик, ни кадр не вклинятся и не увидят состояние наполовину. Цена: бесконечная цепочка microtasks заморозит страницу.</p>
+      </div>
+    </div>
+    <p class="gap">Правило для запоминания: <strong>macro приходит снаружи, micro доделывает начатое.</strong> В спецификации macro называется просто task.</p>
+  </section>
+
+  <section id="source">
+    <h2>Что является macrotask: клик или колбэк?</h2>
+    <p class="answer">Клик только источник. Браузер создаёт macrotask, и уже в ней вызывается твой колбэк.</p>
+    <pre>клик пользователя → браузер ставит задачу в очередь
+задача → вызов колбэков click → стек пуст → microtasks</pre>
+    <p class="gap"><strong>Правило:</strong> колбэк события или таймера выполняется внутри macrotask.</p>
+    <ul>
+      <li><code>input</code>: пользователь ввёл текст → задача → колбэк.</li>
+      <li><code>setTimeout</code>: истёк таймер → задача → колбэк.</li>
+    </ul>
+    <p>Исключение: <code>button.click()</code> из кода не создаёт задачу, колбэки вызываются сразу, в текущем стеке.</p>
+  </section>
+
+  <section id="apis">
+    <h2>Как работают эти API</h2>
+    <h3>MessageChannel (<span class="m">macro</span>)</h3>
+    <p><strong>Что это:</strong> канал связи из двух соединённых объектов-портов. Сообщение, отправленное в один порт, приходит в другой как macrotask.</p>
+    <p><strong>Порты:</strong> это не сетевые порты вроде 8080. Номеров нет, выбирать нечего: браузер всегда создаёт ровно два порта, <code>port1</code> и <code>port2</code>.</p>
+    <pre>const { port1, port2 } = new MessageChannel();
+port1.onmessage = (event) => console.log(event.data);
+port2.postMessage("привет");   // придёт в port1 отдельной задачей</pre>
+    <p class="gap"><strong>Две роли в коде:</strong></p>
+    <ul>
+      <li><code>port1.onmessage = fn</code> — подписка. Сейчас <code>fn</code> не выполняется, браузер только запоминает её.</li>
+      <li><code>port2.postMessage("привет")</code> — отправка. Сообщение уходит на <code>port1</code>.</li>
+    </ul>
+    <pre>port1.onmessage = fn          // подписались
+port2.postMessage("привет")   // отправили
+                              // текущий код дошёл до конца
+macrotask → fn(event)         // сообщение доставлено, event.data === "привет"</pre>
+    <p class="gap"><strong>Важно:</strong> <code>fn</code> не является задачей сама по себе. Задачу создаёт браузер при доставке сообщения, а <code>fn</code> выполняется внутри неё.</p>
+    <p><strong>Вариант с <code>addEventListener</code>:</strong> подписка через него требует ещё вызова <code>port1.start()</code>. Присваивание <code>onmessage</code> запускает порт автоматически.</p>
+    <p class="gap"><strong>Разгружает ли MessageChannel тяжёлую работу?</strong> Сам по себе нет: это только канал связи. Разгрузка зависит от того, как он используется.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Способ</th><th>Где идёт работа</th><th>Результат</th></tr></thead>
+      <tbody>
+        <tr><td>Разбивка на куски (применение 1)</td><td>главный поток</td><td>объём работы тот же, но браузер успевает рисовать между кусками</td></tr>
+        <tr><td>Web Worker (применение 2)</td><td>отдельный поток</td><td>главный поток свободен всё время расчёта</td></tr>
+      </tbody>
+    </table></div>
+    <p class="gap"><strong>Большие данные:</strong> сообщение копируется, и копирование большого объекта само занимает время в главном потоке. Для бинарных данных есть передача без копирования: <code>ArrayBuffer</code> указывают во втором аргументе, и он переходит получателю, а у отправителя становится пустым.</p>
+    <pre>const buffer = new ArrayBuffer(100_000_000);
+worker.postMessage({ buffer }, [buffer]);   // без копирования
+console.log(buffer.byteLength);             // 0</pre>
+    <p class="gap"><strong>Применение 1: разбить долгую работу на части, чтобы не пропускать кадры.</strong></p>
+    <p><em>Задача.</em> Обработка 100 000 строк занимает 200 мс. Одной задачей она пропустит 11 кадров, и страница зависнет.</p>
+    <p><em>Решение.</em> Делим работу на куски примерно по 5 мс и запускаем каждый отдельной macrotask. Между ними браузер может нарисовать кадр и обработать клик.</p>
+    <pre>[кусок 5 мс] [кусок 5 мс] [кусок 5 мс] кадр [кусок 5 мс] ...</pre>
+    <p class="gap"><em>Почему не <code>setTimeout</code>.</em> Он тоже создаёт macrotask, но после нескольких вложенных вызовов браузер ждёт минимум 4 мс перед каждым следующим, даже при <code>setTimeout(fn, 0)</code>. Работа простаивает:</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Способ</th><th>Пауза перед куском</th><th>40 кусков по 5 мс</th></tr></thead>
+      <tbody>
+        <tr><td><code>setTimeout(fn, 0)</code></td><td>минимум 4 мс</td><td>около 360 мс</td></tr>
+        <tr><td><code>MessageChannel</code></td><td>без этого ограничения</td><td>около 200 мс</td></tr>
+      </tbody>
+    </table></div>
+    <p class="gap"><strong>Как отмерить 5 мс и запустить следующую часть.</strong> Заранее длительность неизвестна, поэтому код обрабатывает строки по одной и после каждой смотрит на часы.</p>
+    <pre>const { port1, port2 } = new MessageChannel();
+const SLICE_MS = 5;
+let index = 0;                                // место, где остановились
+
+port1.onmessage = () => {
+  const start = performance.now();            // начало куска
+
+  while (index &lt; rows.length) {
+    processRow(rows[index]);
+    index++;
+
+    if (performance.now() - start >= SLICE_MS) break;  // 5 мс прошло, стоп
+  }
+
+  if (index &lt; rows.length) {
+    port2.postMessage(null);                  // ставим следующую macrotask
+  }
+};
+
+port2.postMessage(null);                      // запускаем первый кусок</pre>
+    <p class="gap"><strong>Пример разбивки:</strong> 1000 строк, за 5 мс успевается 300.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Кусок</th><th><code>index</code> в начале</th><th>Обработано строк</th><th><code>index</code> в конце</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>0</td><td>300</td><td>300</td></tr>
+        <tr><td>2</td><td>300</td><td>300</td><td>600</td></tr>
+        <tr><td>3</td><td>600</td><td>300</td><td>900</td></tr>
+        <tr><td>4</td><td>900</td><td>100, строки кончились</td><td>1000</td></tr>
+      </tbody>
+    </table></div>
+    <p class="gap">Между кусками браузер может нарисовать кадр. <code>index</code> хранится снаружи функции, поэтому после её завершения место не теряется.</p>
+    <p class="gap"><strong>Что делает <code>port2.postMessage(null)</code>:</strong></p>
+    <ul>
+      <li><strong>Куда идёт сообщение:</strong> отправляем через <code>port2</code>, получает <code>port1</code>.</li>
+      <li><strong>Откуда берётся macrotask:</strong> доставка сообщения и есть задача. Браузер ставит её в очередь, а она вызывает <code>port1.onmessage</code>.</li>
+      <li><strong>Почему <code>null</code>:</strong> содержимое не важно. Сообщение служит только сигналом «запусти следующий кусок».</li>
+    </ul>
+    <pre>port2.postMessage(null) → браузер ставит задачу → port1.onmessage</pre>
+    <p class="gap"><strong>Что происходит по шагам:</strong></p>
+    <ol>
+      <li><code>port2.postMessage</code> ставит macrotask в очередь.</li>
+      <li>Она вызывает <code>port1.onmessage</code>, код запоминает время начала.</li>
+      <li>Цикл обрабатывает строки, пока не пройдёт 5 мс.</li>
+      <li>Если строки остались, код снова вызывает <code>port2.postMessage</code>. Номер строки хранится в <code>index</code>, поэтому следующий кусок продолжит с того же места.</li>
+      <li>Задача заканчивается, стек пуст. Браузер может нарисовать кадр или обработать клик.</li>
+      <li>Следующая macrotask продолжает работу с шага 2.</li>
+    </ol>
+    <p><strong>Ограничение:</strong> время проверяется только между строками. Если одна строка обрабатывается 30 мс, кусок займёт 30 мс, потому что прервать функцию посередине нельзя.</p>
+    <p class="gap">Время в таблице расчётное, без учёта отрисовки.</p>
+    <p><strong>Применение 2: отдельный канал для каждого запроса к воркеру.</strong></p>
+    <p><em>Задача.</em> Воркер работает в своём потоке, поэтому тяжёлый расчёт не пропускает кадры. Но у него один общий <code>onmessage</code>. Если страница отправит два запроса, ответы придут в одно место, и без лишних id непонятно, какой ответ к какому запросу.</p>
+    <p><em>Решение.</em> На каждый запрос создаём канал и передаём воркеру <code>port2</code>. Воркер отвечает в этот порт, поэтому ответ приходит только тому, кто спрашивал.</p>
+    <pre>// main.js
+const worker = new Worker("worker.js");
+
+function calculate(numbers) {
+  return new Promise((resolve) => {
+    const { port1, port2 } = new MessageChannel();
+    port1.onmessage = (event) => {
+      resolve(event.data);
+      port1.close();
+    };
+    worker.postMessage({ numbers }, [port2]);   // порт передаётся вторым аргументом
+  });
+}
+
+const sum = await calculate(bigArray);   // интерфейс не зависает
+
+// worker.js
+self.onmessage = (event) => {
+  const [replyPort] = event.ports;   // полученный port2
+  const sum = event.data.numbers.reduce((a, b) => a + b, 0);
+  replyPort.postMessage(sum);
+};</pre>
+    <p class="gap"><strong>Порядок работы:</strong></p>
+    <ol>
+      <li>Страница создаёт канал и отправляет воркеру данные и <code>port2</code>.</li>
+      <li>Воркер считает в своём потоке, главный поток свободен и рисует кадры.</li>
+      <li>Воркер отправляет результат в <code>port2</code>.</li>
+      <li>На странице появляется macrotask, <code>port1.onmessage</code> завершает промис.</li>
+      <li>Код после <code>await</code> продолжается как microtask.</li>
+    </ol>
+    <p><strong>Применение 3: прямая связь двух воркеров.</strong> Страница передаёт по одному порту каждому воркеру, и дальше они обмениваются данными напрямую, не нагружая главный поток.</p>
+    <pre>const { port1, port2 } = new MessageChannel();
+parser.postMessage({ output: port1 }, [port1]);
+renderer.postMessage({ input: port2 }, [port2]);</pre>
+    <h3>postMessage (<span class="m">macro</span>)</h3>
+    <p><strong>Что это:</strong> метод отправки сообщения. Он есть у окна, воркера и порта. У получателя появляется macrotask, которая вызывает <code>onmessage</code>.</p>
+    <p><strong>Данные:</strong> передаётся копия, а не ссылка на объект.</p>
+    <p><strong>Применение:</strong> связь с iframe, вкладкой, открытым окном или воркером.</p>
+    <pre>// Родительская страница
+iframe.contentWindow.postMessage("привет", "https://widget.example");
+
+// Внутри iframe
+window.addEventListener("message", (event) => {
+  if (event.origin !== "https://parent.example") return;   // проверка отправителя
+  console.log(event.data);
+});</pre>
+    <p class="gap"><strong>Важно:</strong> при обмене между окнами указывай точный адрес получателя и проверяй <code>event.origin</code>, иначе сообщение может прочитать или подделать чужой сайт.</p>
+    <h3>Остальные API</h3>
+    <p class="gap"><strong><code>queueMicrotask</code></strong> (<span class="u">micro</span>) ставит функцию в очередь microtasks. Она выполнится, когда опустеет стек.</p>
+    <pre>queueMicrotask(() => console.log("2"));
+console.log("1");   // вывод: 1, 2</pre>
+    <p class="gap"><strong><code>queueMicrotask</code> или <code>requestAnimationFrame</code>:</strong> что выбрать, чтобы код выполнился прямо перед перерисовкой?</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th></th><th><code>queueMicrotask</code></th><th><code>requestAnimationFrame</code></th></tr></thead>
+      <tbody>
+        <tr><td>Когда выполнится</td><td>как только опустеет стек</td><td>прямо перед отрисовкой</td></tr>
+        <tr><td>Привязка к кадру</td><td>нет</td><td>да</td></tr>
+        <tr><td>Для чего</td><td>доделать работу до следующей задачи</td><td>изменить DOM к ближайшему кадру</td></tr>
+      </tbody>
+    </table></div>
+    <pre class="gap">0 мс      macro → queueMicrotask(fn)
+1 мс      fn выполнилась, до кадра ещё почти 16 мс
+2 мс      следующие витки macro + micro
+16,67 мс  rAF → отрисовка</pre>
+    <p class="gap"><strong>Правило:</strong> microtask выполнится раньше отрисовки, но не обязательно непосредственно перед ней. Для кода перед кадром нужен <code>requestAnimationFrame</code>.</p>
+    <p><strong>Как измерить время от microtask до кадра:</strong></p>
+    <pre>queueMicrotask(() => {
+  const start = performance.now();
+
+  requestAnimationFrame(() => {
+    console.log(`до кадра: ${performance.now() - start} мс`);
+  });
+});</pre>
+    <p class="gap"><strong>Что показывает замер:</strong> сколько времени прошло между microtask и колбэком rAF.</p>
+    <p><strong>Пустой стек не значит, что работы больше нет.</strong> <code>queueMicrotask</code> ставит функцию в очередь сразу, а выполняется она, когда стек опустел. Но в очередях ещё могут ждать другие задачи:</p>
+    <pre>стек пуст → наша micro (замер начался)
+          → другие micro из очереди
+          → следующая macro, если кадр ещё не настал
+          → её micro
+          → rAF (замер закончился)</pre>
+    <p class="gap"><strong>Чего он не показывает:</strong> простой. В этот промежуток могли выполняться другие macro и micro, поэтому 12 мс в замере не значат 12 мс простоя. Отрисовка начинается уже после колбэков rAF, поэтому её старт замер тоже точно не ловит.</p>
+    <p><strong>Как увидеть настоящую картину:</strong> вкладка Performance в DevTools показывает все задачи, отрисовку и свободные промежутки на одной шкале.</p>
+    <p class="gap"><strong><code>MutationObserver</code></strong> (<span class="u">micro</span>) следит за изменениями DOM. Изменения копятся, и колбэк вызывается один раз со всем списком, а не на каждое изменение.</p>
+    <pre>const observer = new MutationObserver((records) => console.log(records.length));
+observer.observe(el, { childList: true });
+el.append(a);
+el.append(b);   // один вызов, в списке 2 записи</pre>
+    <p class="gap"><strong>Колбэк rAF</strong> (<span class="f">шаг 3</span>) не macro и не micro. <code>requestAnimationFrame</code> кладёт функцию в отдельный список, браузер выполняет его прямо перед отрисовкой. Колбэк срабатывает один раз и получает время кадра.</p>
+    <pre>requestAnimationFrame((time) => {
+  el.style.transform = `translateX(${time / 10}px)`;
+});</pre>
+  </section>
+
+  <section id="order">
+    <h2>Проверь порядок сама</h2>
+    <pre>console.log("1 синхронно");
+setTimeout(() => console.log("macro: setTimeout"));
+requestAnimationFrame(() => console.log("rAF"));
+Promise.resolve().then(() => console.log("micro: then"));
+console.log("2 синхронно");</pre>
+    <p class="gap"><button id="run" type="button">Запустить</button></p>
+    <pre class="output" id="output" aria-live="polite">Нажми «Запустить», код выполнится здесь по-настоящему.</pre>
+    <p class="gap">Первые три строки идут всегда в порядке: <code>1</code>, <code>2</code>, <code>micro</code>. А вот <code>setTimeout</code> и <code>rAF</code> могут поменяться местами: всё зависит от того, сколько осталось до кадра.</p>
+  </section>
+
+  <div class="part">React: как работает внутри</div>
+
+  <section id="scheduler">
+    <h2>React Scheduler</h2>
+    <p class="answer">Планировщик режет работу React на короткие macrotasks, чтобы браузер успевал рисовать кадры.</p>
+    <h3>Как устроен</h3>
+    <ul>
+      <li><strong>Очередь:</strong> задачи лежат в очереди с приоритетами (min-heap). Первой берётся задача с самым ранним дедлайном.</li>
+      <li><strong>Запуск:</strong> <code>port.postMessage</code> ставит macrotask, а обработчик <code>onmessage</code> выполняет задачи из очереди.</li>
+      <li><strong>Бюджет:</strong> работа идёт кусками примерно по 5 мс, а не на весь кадр в 16,6 мс. Остаток кадра нужен браузеру.</li>
+      <li><strong>Прерывание:</strong> время истекло, значит React останавливается и ставит продолжение новой macrotask.</li>
+    </ul>
+    <pre>postMessage → macrotask → работа 5 мс → время вышло?
+  да  → postMessage (браузер может нарисовать кадр)
+  нет → следующий компонент</pre>
+    <p class="gap"><strong>Ограничение:</strong> прервать можно только между компонентами. Один компонент на 100 мс всё равно заблокирует кадр.</p>
+  </section>
+
+  <section id="phases">
+    <h2>Фазы Render и Commit</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th></th><th>Render</th><th>Commit</th></tr></thead>
+      <tbody>
+        <tr><td>Что делает</td><td>вызывает компоненты и вычисляет изменения</td><td>записывает изменения в DOM</td></tr>
+        <tr><td>Можно прервать</td><td>да, при concurrent-обновлении</td><td>нет, всегда синхронно</td></tr>
+        <tr><td>Побочные эффекты</td><td>нельзя: рендер может запуститься снова</td><td>здесь запускаются эффекты</td></tr>
+      </tbody>
+    </table></div>
+    <p class="gap"><strong>Порядок эффектов:</strong></p>
+    <ol>
+      <li>React записывает изменения в DOM.</li>
+      <li><code>useLayoutEffect</code> выполняется синхронно, до отрисовки.</li>
+      <li>Браузер рисует кадр.</li>
+      <li><code>useEffect</code> обычно выполняется после отрисовки.</li>
+    </ol>
+  </section>
+
+  <section id="reconciliation">
+    <h2>Reconciliation: сравнение деревьев</h2>
+    <p class="answer">React сравнивает новое дерево с предыдущим и меняет в DOM только отличия.</p>
+    <h3>Что запускает рендер</h3>
+    <ul>
+      <li>изменение состояния (<code>useState</code>, <code>useReducer</code>);</li>
+      <li>изменение контекста, на который подписан компонент;</li>
+      <li>рендер родителя: дочерние компоненты рендерятся, даже если их пропсы не изменились, пока их не защитит <code>memo</code>;</li>
+      <li><code>forceUpdate</code> в классовых компонентах и Fast Refresh в разработке.</li>
+    </ul>
+    <p><strong>StrictMode</strong> не запускает обновления. В разработке он только вызывает рендер дважды, чтобы найти побочные эффекты.</p>
+    <h3>Правила сравнения</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Случай</th><th>Пример</th><th>Что делает React</th></tr></thead>
+      <tbody>
+        <tr><td>Разный тип</td><td><code>div → span</code>, <code>UserCard → ProductCard</code></td><td>удаляет узел с поддеревом и создаёт новый, состояние теряется</td></tr>
+        <tr><td>Одинаковый тип</td><td><code>div → div</code>, <code>UserCard → UserCard</code></td><td>сохраняет узел и состояние, обновляет пропсы и атрибуты</td></tr>
+        <tr><td>Список</td><td>элементы с <code>key</code></td><td>одинаковый <code>key</code> значит тот же элемент, новый <code>key</code> значит новый</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Почему индекс нельзя использовать как key</h3>
+    <p>При вставке в начало индексы сдвигаются. React считает, что элементы на месте, и оставляет состояние на прежней позиции, поэтому оно оказывается у другой записи.</p>
+    <pre>До:    key=0 "Анна"  &lt;input value="заметка Анны"&gt;
+Вставили "Борис" в начало
+После: key=0 "Борис" &lt;input value="заметка Анны"&gt;   // чужая заметка
+       key=1 "Анна"  &lt;input value=""&gt;</pre>
+    <p class="gap"><strong>Правило:</strong> используй стабильный уникальный <code>key</code> из данных, например id записи. Индекс допустим, только если список не меняет порядок и у элементов нет состояния.</p>
+  </section>
+
+  <section id="concurrent">
+    <h2>useTransition, useDeferredValue, Suspense</h2>
+    <h3>useTransition</h3>
+    <p>Помечает обновление как несрочное. Старый экран остаётся отзывчивым, новый готовится в фоне, <code>isPending</code> показывает, что идёт переход.</p>
+    <pre>const [isPending, startTransition] = useTransition();
+
+startTransition(() => setTab("archive"));</pre>
+    <h3>useDeferredValue</h3>
+    <p>Создаёт отстающую копию значения. Поле ввода обновляется сразу, а тяжёлый список догоняет его несрочным рендером.</p>
+    <pre>const [query, setQuery] = useState("");
+const deferredQuery = useDeferredValue(query);
+
+&lt;input value={query} onChange={(e) =&gt; setQuery(e.target.value)} /&gt;
+&lt;Results query={deferredQuery} /&gt;</pre>
+    <div class="tablewrap gap"><table>
+      <thead><tr><th>Хук</th><th>Что контролируешь</th><th>Когда подходит</th></tr></thead>
+      <tbody>
+        <tr><td><code>useTransition</code></td><td>вызов обновления состояния</td><td>есть доступ к <code>setState</code></td></tr>
+        <tr><td><code>useDeferredValue</code></td><td>значение</td><td>значение приходит извне, например из пропсов</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Suspense</h3>
+    <p>Показывает <code>fallback</code>, пока часть дерева не готова: не загружен код или данные. Работает с <code>React.lazy</code>, <code>use</code> и библиотеками с поддержкой Suspense.</p>
+    <pre>&lt;Suspense fallback={&lt;Spinner /&gt;}&gt;
+  &lt;Comments /&gt;
+&lt;/Suspense&gt;</pre>
+  </section>
+
+  <section id="hydration">
+    <h2>Hydration</h2>
+    <p class="answer">React подключает интерактивность к HTML, который уже пришёл с сервера.</p>
+    <ol>
+      <li>Сервер рендерит HTML и отправляет его: контент виден до загрузки JS.</li>
+      <li>Браузер загружает JS.</li>
+      <li><code>hydrateRoot</code> рендерит те же компоненты и сравнивает результат с готовым DOM.</li>
+      <li>React подключает обработчики событий и состояние, DOM при этом не пересоздаётся.</li>
+    </ol>
+    <p><strong>Ошибка hydration:</strong> результат на клиенте отличается от серверного HTML. Частые причины: <code>Date.now()</code>, <code>Math.random()</code>, чтение <code>window</code> во время рендера.</p>
+  </section>
+
+  <section id="react18">
+    <h2>Что нового в React 18</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Возможность</th><th>Что даёт</th></tr></thead>
+      <tbody>
+        <tr><td>Concurrent Rendering</td><td>рендер можно прервать и продолжить</td></tr>
+        <tr><td>Automatic Batching</td><td>несколько обновлений объединяются в один рендер, в том числе в таймерах и промисах</td></tr>
+        <tr><td><code>useTransition</code>, <code>startTransition</code></td><td>несрочные обновления</td></tr>
+        <tr><td><code>useDeferredValue</code></td><td>отстающая копия значения</td></tr>
+        <tr><td>Suspense на сервере</td><td>streaming HTML: сервер отправляет страницу частями, а части гидрируются по отдельности</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="react19">
+    <h2>Что нового в React 19</h2>
+    <h3>Формы и Actions</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>API</th><th>Для чего</th></tr></thead>
+      <tbody>
+        <tr><td><code>useActionState</code></td><td>состояние результата действия и <code>isPending</code></td></tr>
+        <tr><td><code>useFormStatus</code></td><td>статус родительской формы в дочернем компоненте</td></tr>
+        <tr><td><code>useOptimistic</code></td><td>показать результат сразу; при ошибке он возвращается к реальному значению</td></tr>
+        <tr><td><code>&lt;form action={fn}&gt;</code></td><td>отправка через функцию; неуправляемая форма сбрасывается после успеха</td></tr>
+      </tbody>
+    </table></div>
+    <pre class="gap">const [state, formAction, isPending] = useActionState(fn, initialState, permalink);
+const { pending, data, method, action } = useFormStatus();</pre>
+    <h3>Другие изменения</h3>
+    <ul>
+      <li><strong><code>ref</code> как пропс:</strong> в новых компонентах <code>forwardRef</code> больше не нужен.</li>
+      <li><strong><code>use</code>:</strong> читает промис или контекст во время рендера.</li>
+      <li><strong><code>useDeferredValue</code>:</strong> появился <code>initialValue</code> для первого рендера.</li>
+      <li><strong>Метаданные:</strong> <code>&lt;title&gt;</code>, <code>&lt;meta&gt;</code> и <code>&lt;link&gt;</code> можно рендерить в компонентах, React поднимает их в <code>head</code>.</li>
+      <li><strong>Стили:</strong> <code>precedence</code> управляет порядком таблиц стилей.</li>
+      <li><strong>Асинхронные скрипты:</strong> можно рендерить в компонентах, дубли не загружаются.</li>
+      <li><strong><code>prerender</code>:</strong> статическая генерация, которая дожидается данных внутри Suspense.</li>
+    </ul>
+  </section>
+
+  <div class="part">Next.js</div>
+
+  <section id="next-rendering">
+    <h2>Способы рендеринга</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Способ</th><th>Когда создаётся HTML</th><th>Подходит для</th></tr></thead>
+      <tbody>
+        <tr><td>Static Generation</td><td>при сборке</td><td>лендинги, документация</td></tr>
+        <tr><td>Server-Side Rendering</td><td>на каждый запрос</td><td>персональные и часто меняющиеся данные</td></tr>
+        <tr><td>Client-Side Rendering</td><td>в браузере</td><td>интерфейс за авторизацией, не нужный поиску</td></tr>
+        <tr><td>Incremental Static Regeneration</td><td>при сборке или первом запросе, затем обновляется в фоне</td><td>каталоги, статьи</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Как работает revalidate в ISR</h3>
+    <p>Страница не обновляется сама каждые n секунд. Обновление запускает запрос:</p>
+    <ol>
+      <li>Пока не прошло n секунд, все получают версию из кэша.</li>
+      <li>После этого первый запрос тоже получает старую версию и запускает генерацию в фоне.</li>
+      <li>Когда генерация закончена, следующие запросы получают новую страницу.</li>
+    </ol>
+  </section>
+
+  <div class="part">JavaScript</div>
+
+  <section id="promises">
+    <h2>Promise: комбинаторы</h2>
+    <pre>const promise = new Promise((resolve, reject) => reject(error));</pre>
+    <div class="tablewrap gap"><table>
+      <thead><tr><th>Метод</th><th>Завершается</th><th>Результат</th><th>Ошибка</th></tr></thead>
+      <tbody>
+        <tr><td><code>Promise.all</code></td><td>когда успешны все или упал один</td><td><code>[value1, value2]</code></td><td>первая ошибка</td></tr>
+        <tr><td><code>Promise.race</code></td><td>при первом завершении, любом</td><td>значение первого</td><td>ошибка первого, если он упал</td></tr>
+        <tr><td><code>Promise.allSettled</code></td><td>когда завершены все</td><td><code>[{ status, value | reason }]</code></td><td>не падает</td></tr>
+        <tr><td><code>Promise.any</code></td><td>при первом успехе</td><td>значение первого успешного</td><td><code>AggregateError</code>, если упали все</td></tr>
+      </tbody>
+    </table></div>
+    <pre class="gap">await Promise.allSettled([ok, fail]);
+// [{ status: "fulfilled", value: 1 }, { status: "rejected", reason: error }]</pre>
+    <h3>Что выбрать</h3>
+    <ul>
+      <li>Нужны все результаты: <code>all</code>.</li>
+      <li>Нужны все, даже если часть упала: <code>allSettled</code>.</li>
+      <li>Таймаут запроса: <code>race</code>.</li>
+      <li>Первое успешное зеркало: <code>any</code>.</li>
+    </ul>
+  </section>
+
+  <section id="websocket">
+    <h2>WebSocket</h2>
+    <p class="answer">Постоянное двустороннее соединение: сервер может отправлять данные сам, без запроса клиента.</p>
+    <h3>Сервер (пакет ws)</h3>
+    <pre>import { WebSocketServer } from "ws";
+
+const wss = new WebSocketServer({ port: 8080 });
+
+wss.on("connection", (ws) => {
+  ws.send("hello");
+
+  ws.on("message", (message) => {
+    console.log(message.toString());   // по умолчанию приходит Buffer
+  });
+});</pre>
+    <h3>Клиент (браузер)</h3>
+    <pre>const socket = new WebSocket("ws://localhost:8080");
+
+socket.onopen = () => socket.send(inputValue);   // отправлять можно после открытия
+socket.onmessage = (event) => console.log(event.data);</pre>
+    <p class="gap">На реальном сайте используй <code>wss://</code>. Каждое входящее сообщение обрабатывается в браузере как macrotask.</p>
+  </section>
+
+  <section id="throttle-debounce">
+    <h2>Throttle и debounce</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th></th><th>Throttle</th><th>Debounce</th></tr></thead>
+      <tbody>
+        <tr><td>Правило</td><td>не чаще раза в N мс</td><td>через N мс после последнего вызова</td></tr>
+        <tr><td>Пример</td><td>scroll, resize</td><td>поиск при вводе</td></tr>
+      </tbody>
+    </table></div>
+    <pre class="gap">function throttle(func, limit) {
+  let lastCall = 0;
+
+  return (...args) => {
+    const now = Date.now();
+
+    if (now - lastCall >= limit) {
+      lastCall = now;
+      func(...args);
+    }
+  };
+}
+
+function debounce(func, delay) {
+  let timer;
+
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+}</pre>
+    <p class="gap">Этот <code>throttle</code> выполняет первый вызов сразу, а вызовы внутри интервала отбрасывает, включая последний.</p>
+  </section>
+
+  <section id="rotate">
+    <h2>Задача: поворот массива без копирования</h2>
+    <p>Массив не меняется: хранится только счётчик сдвига, а индекс вычисляется при чтении, поэтому <code>rotate</code> работает за O(1).</p>
+    <pre>const getRotatableArr = (arr) => {
+  let rotateCount = 0;
+
+  return {
+    rotate(direction = 1, step = 1) {
+      rotateCount += direction * step;
+    },
+
+    get(i) {
+      const originalIndex = (i - (rotateCount % arr.length) + arr.length) % arr.length;
+
+      return arr[originalIndex];
+    },
+  };
+};
+
+const rotatable = getRotatableArr(["a", "b", "c"]);
+rotatable.rotate();   // вправо на 1: c, a, b
+rotatable.get(0);     // "c"</pre>
+  </section>
+
+  <div class="part">Архитектура</div>
+
+  <section id="solid">
+    <h2>SOLID</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Принцип</th><th>Смысл</th><th>Пример в React</th></tr></thead>
+      <tbody>
+        <tr><td>Single Responsibility</td><td>одна причина для изменения</td><td>данные в хуке, разметка в компоненте</td></tr>
+        <tr><td>Open/Closed</td><td>расширяем без изменения готового кода</td><td>композиция через <code>children</code></td></tr>
+        <tr><td>Liskov Substitution</td><td>наследника можно подставить вместо родителя, логика не ломается</td><td>своя кнопка принимает все пропсы <code>button</code></td></tr>
+        <tr><td>Interface Segregation</td><td>несколько маленьких интерфейсов лучше одного большого</td><td>компонент получает только нужные пропсы</td></tr>
+        <tr><td>Dependency Inversion</td><td>зависим от абстракций, а не от деталей</td><td>сервис передаётся через пропс или контекст</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="patterns">
+    <h2>Паттерны проектирования</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Паттерн</th><th>Что делает</th><th>Пример</th></tr></thead>
+      <tbody>
+        <tr><td>Singleton</td><td>один экземпляр на приложение</td><td>Redux Store</td></tr>
+        <tr><td>Factory</td><td>создаёт объекты через функцию</td><td><code>configureStore</code></td></tr>
+        <tr><td>Builder</td><td>собирает сложный объект по шагам</td><td>цепочка middleware в Redux Toolkit</td></tr>
+        <tr><td>Observer</td><td>подписчики реагируют на изменения</td><td><code>store.subscribe</code>, <code>addEventListener</code></td></tr>
+        <tr><td>Decorator</td><td>добавляет поведение через обёртку</td><td>HOC, <code>connect</code></td></tr>
+        <tr><td>Proxy</td><td>управляет доступом к объекту</td><td>объект <code>Proxy</code>, клиент API с авторизацией</td></tr>
+        <tr><td>Strategy</td><td>выбирает алгоритм во время работы</td><td>объект с функциями валидации</td></tr>
+        <tr><td>Command</td><td>представляет действие как объект</td><td><code>dispatch(action)</code></td></tr>
+        <tr><td>Adapter</td><td>приводит интерфейс к нужному виду</td><td>преобразование ответа API, <code>mapStateToProps</code></td></tr>
+        <tr><td>Repository</td><td>прячет доступ к данным</td><td>хуки и модуль запросов к API</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+<aside class="viz" aria-label="Анимация цикла">
+  <h2>Стек и очереди</h2>
+  <ol class="viz-steps" id="viz-steps">
+    <li>1. Одна macrotask</li>
+    <li>2. Все microtasks</li>
+    <li>3. Кадр, если пора</li>
+  </ol>
+  <div class="viz-label">* По кругу: 1 → 2 → 3 → 1 …</div>
+  <div><div class="viz-label">Call stack</div><div class="flask"><div class="stack" id="viz-stack"></div></div></div>
+  <div><div class="viz-label">Очередь macro</div><div class="queue" id="viz-macro"></div></div>
+  <div><div class="viz-label">Очередь micro</div><div class="queue" id="viz-micro"></div></div>
+  <p class="viz-note" id="viz-note" aria-live="off"></p>
+  <div class="viz-controls">
+    <button id="viz-play" type="button">Остановить</button>
+    <button id="viz-next" type="button">Шаг</button>
+  </div>
+</aside>
+</div>
+
+<script>
+const VIZ = [
+  { step: 0, stack: [], macro: ["macro 1: клик", "macro 2: setTimeout"], micro: [], note: "В очереди две macro. Берём только первую." },
+  { step: 0, stack: ["macro 1: клик"], macro: ["macro 2: setTimeout"], micro: [], note: "Macro 1 выполняется в стеке." },
+  { step: 0, stack: ["macro 1: клик", "macro 1 → queueMicrotask"], macro: ["macro 2: setTimeout"], micro: ["micro 1"], note: "Macro 1 поставила micro 1." },
+  { step: 0, stack: ["macro 1: клик", "macro 1 → then"], macro: ["macro 2: setTimeout"], micro: ["micro 1", "micro 2"], note: "Macro 1 поставила ещё и micro 2. Обе ждут." },
+  { step: 0, stack: [], macro: ["macro 2: setTimeout"], micro: ["micro 1", "micro 2"], note: "Macro 1 закончилась, стек пуст." },
+  { step: 1, stack: ["micro 1"], macro: ["macro 2: setTimeout"], micro: ["micro 2"], note: "Выполняется micro 1, первая в очереди." },
+  { step: 1, stack: ["micro 1", "micro 1 → queueMicrotask"], macro: ["macro 2: setTimeout"], micro: ["micro 2", "micro 3"], note: "Micro 1 поставила micro 3: это и есть «по ходу». Она встала в конец." },
+  { step: 1, stack: ["micro 2"], macro: ["macro 2: setTimeout"], micro: ["micro 3"], note: "Выполняется micro 2." },
+  { step: 1, stack: ["micro 3"], macro: ["macro 2: setTimeout"], micro: [], note: "Micro 3 выполняется на этом же шаге, macro 2 ждёт." },
+  { step: 1, stack: [], macro: ["macro 2: setTimeout"], micro: [], note: "Очередь micro пуста, шаг 2 закончен." },
+  { step: 2, stack: [], macro: ["macro 2: setTimeout"], micro: [], note: "Время кадра ещё не подошло, отрисовку пропускаем." },
+  { step: 0, stack: ["macro 2: setTimeout"], macro: [], micro: [], note: "Выполняется macro 2." },
+  { step: 0, stack: [], macro: [], micro: [], note: "Macro 2 закончилась." },
+  { step: 1, stack: [], macro: [], micro: [], note: "Microtasks нет, шаг сразу закончен." },
+  { step: 2, stack: ["колбэк rAF"], macro: [], micro: [], note: "Подошло время кадра: сначала rAF." },
+  { step: 2, stack: ["layout → paint → composite"], macro: [], micro: [], note: "Браузер рисует кадр. Схематично: это работа браузера, а не функция JS." },
+  { step: 2, stack: ["layout → paint → composite"], macro: ["macro 3: данные"], micro: [], note: "Отрисовка затянулась. Пришли важные данные: они ждут в очереди." },
+  { step: 2, stack: ["layout → paint → composite"], macro: ["macro 3: данные"], micro: [], note: "Прошло больше 16,6 мс: момент следующего кадра пропущен. Данные не потеряны." },
+  { step: 0, stack: ["macro 3: данные"], macro: [], micro: [], note: "Отрисовка закончилась. Macro 3 записывает данные в DOM." },
+  { step: 1, stack: [], macro: [], micro: [], note: "Microtasks нет, шаг сразу закончен." },
+  { step: 2, stack: ["layout → paint → composite"], macro: [], micro: [], note: "Следующий кадр показывает новые данные, просто позже." },
+];
+const vizStepItems = [...document.querySelectorAll("#viz-steps li")];
+const loopItems = [...document.querySelectorAll("#loop .loop li")];
+const chips = (items, cls) => items.map((text) => `<span class="chip ${cls}">${text}</span>`).join("");
+const chipClass = (text) => (text.startsWith("micro") ? "micro" : /rAF|layout/.test(text) ? "frame" : "macro");
+let vizIndex = 0;
+let vizShown = [];
+const renderViz = () => {
+  const state = VIZ[vizIndex];
+  [vizStepItems, loopItems].forEach((items) => items.forEach((item, i) => item.classList.toggle("now", i === state.step)));
+  document.getElementById("viz-stack").innerHTML = state.stack.map((text) => `<span class="chip ${chipClass(text)}${vizShown.includes(text) ? "" : " enter"}">${text}</span>`).join("");
+  vizShown = state.stack;
+  document.getElementById("viz-macro").innerHTML = chips(state.macro, "macro");
+  document.getElementById("viz-micro").innerHTML = chips(state.micro, "micro");
+  document.getElementById("viz-note").textContent = state.note;
+};
+const nextViz = () => { vizIndex = (vizIndex + 1) % VIZ.length; renderViz(); };
+const vizPlay = document.getElementById("viz-play");
+let vizTimer = null;
+const setPlaying = (playing) => {
+  clearInterval(vizTimer);
+  vizTimer = playing ? setInterval(nextViz, 3000) : null;
+  vizPlay.textContent = playing ? "Остановить" : "Запустить";
+};
+vizPlay.addEventListener("click", () => setPlaying(!vizTimer));
+document.getElementById("viz-next").addEventListener("click", () => { setPlaying(false); nextViz(); });
+renderViz();
+setPlaying(!matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+const menu = document.getElementById("menu");
+const burger = document.getElementById("burger");
+const backdrop = document.getElementById("backdrop");
+const toggleMenu = (open) => {
+  menu.classList.toggle("open", open);
+  backdrop.hidden = !open;
+  burger.textContent = open ? "✕" : "☰";
+  burger.setAttribute("aria-expanded", String(open));
+  burger.setAttribute("aria-label", open ? "Закрыть меню" : "Открыть меню");
+};
+burger.addEventListener("click", () => toggleMenu(!menu.classList.contains("open")));
+backdrop.addEventListener("click", () => toggleMenu(false));
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") toggleMenu(false); });
+const menuLinks = [...document.querySelectorAll("#menu a")];
+const setActive = (id) => menuLinks.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === `#${id}`));
+menuLinks.forEach((link) => link.addEventListener("click", (event) => {
+  event.preventDefault();
+  const id = link.getAttribute("href").slice(1);
+  const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById(id).scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+  setActive(id);
+  toggleMenu(false);
+}));
+const spy = new IntersectionObserver((entries) => {
+  const visible = entries.filter((entry) => entry.isIntersecting);
+  if (visible.length) setActive(visible[visible.length - 1].target.id);
+}, { rootMargin: "-20% 0px -70% 0px" });
+document.querySelectorAll("section[id]").forEach((section) => spy.observe(section));
+setActive("loop");
+
+const timeline = document.getElementById("timeline");
+const pct = (ms) => (ms / 50) * 100;
+const seg = (cls, from, width, text = "") => `<span class="${cls}" style="left:${pct(from)}%;width:${pct(width)}%">${text}</span>`;
+const ticks = [16.67, 33.33, 50].map((t) => `<i class="tick" style="left:${Math.min(pct(t), 99.8)}%"></i>`).join("");
+const scale = `<div class="scale"><b style="left:0">0</b><b style="left:${pct(16.67)}%">16,67 мс</b><b style="left:${pct(33.33)}%">33,33 мс</b><b style="left:100%">50 мс</b></div>`;
+
+let shortRow = "";
+for (const start of [0, 16.67, 33.33]) {
+  for (const offset of [0.8, 4.4, 8, 11.4]) shortRow += seg("mt", start + offset, 2) + seg("ut", start + offset + 2, 0.7);
+  if (start < 33) shortRow += seg("ft", start + 14.4, 2.2);
+}
+shortRow += seg("ft", 47.7, 2.2);
+
+timeline.innerHTML = `
+  <div><div class="row-title">Короткие задачи: четыре витка за кадр, все кадры на месте</div><div class="track">${ticks}${shortRow}</div>${scale}</div>
+  <div><div class="row-title">Одна задача на 40 мс: кадры в 16,67 и 33,33 мс пропущены</div><div class="track">${ticks}${seg("mt long", 0.4, 39.6, "одна macrotask, 40 мс")}${seg("ut", 40, 0.8)}${seg("ft", 47.7, 2.2)}</div>${scale}</div>`;
+
+const measureBtn = document.getElementById("measure");
+function measure() {
+  measureBtn.disabled = true;
+  const channel = new MessageChannel();
+  let tasks = 0, running = true, frames = 0, first = 0, last = 0, counted = 0;
+  channel.port1.onmessage = () => { tasks++; if (running) channel.port2.postMessage(0); };
+  channel.port2.postMessage(0);
+  const finish = () => {
+    running = false;
+    channel.port1.close();
+    measureBtn.disabled = false;
+    if (frames < 2) {
+      document.getElementById("s-frame").textContent = "нет данных";
+      document.getElementById("s-tasks").textContent = "нет данных";
+      document.getElementById("s-hz").textContent = "нет данных";
+      return;
+    }
+    const interval = (last - first) / (frames - 1);
+    document.getElementById("s-frame").textContent = interval.toFixed(2).replace(".", ",");
+    document.getElementById("s-tasks").textContent = Math.round(counted / (frames - 1));
+    document.getElementById("s-hz").textContent = Math.round(1000 / interval);
+  };
+  const started = performance.now();
+  const watchdog = setTimeout(finish, 1800);
+  const onFrame = (now) => {
+    if (frames === 0) { first = now; tasks = 0; }
+    else counted = tasks;
+    frames++;
+    last = now;
+    if (now - started < 1000) requestAnimationFrame(onFrame);
+    else { clearTimeout(watchdog); finish(); }
+  };
+  requestAnimationFrame(onFrame);
+}
+measureBtn.addEventListener("click", measure);
+measure();
+
+document.getElementById("run").addEventListener("click", () => {
+  const output = document.getElementById("output");
+  const lines = [];
+  const log = (text) => { lines.push(text); output.textContent = lines.join("\n"); };
+  log("1 синхронно");
+  setTimeout(() => log("macro: setTimeout"));
+  requestAnimationFrame(() => log("rAF"));
+  Promise.resolve().then(() => log("micro: then"));
+  log("2 синхронно");
+});
+</script>
+
+</body>
+</html>
