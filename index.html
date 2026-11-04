@@ -320,7 +320,7 @@ for (const item of items) {
 <section id="threads">
   <h2>Потоки и CSS-анимации</h2>
   <p class="answer">JS и подготовка кадра идут в главном потоке, а готовую картинку собирает отдельный поток-композитор.</p>
-  <h3>Джуну: простыми словами</h3>
+  <h3>Простыми словами</h3>
   <p>Анимация <code>transform</code> или <code>opacity</code> двигает уже нарисованный слой, как лист бумаги на столе. Анимация <code>width</code> каждый кадр заново вычисляет раскладку страницы. Первой главный поток обычно не нужен, второй нужен всегда.</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Этап</th><th>Где выполняется</th></tr></thead>
@@ -331,7 +331,7 @@ for (const item of items) {
       <tr><td>Composite</td><td>поток композитора, GPU</td></tr>
     </tbody>
   </table></div>
-  <h3>Мидлу: на практике</h3>
+  <h3>На практике</h3>
   <div class="tablewrap"><table>
     <thead><tr><th>Анимация</th><th>Что пересчитывается</th><th>Если главный поток занят</th></tr></thead>
     <tbody>
@@ -344,7 +344,7 @@ for (const item of items) {
   <pre class="gap">.bad  { transition: left 0.3s; }        /* Layout каждый кадр */
 .good { transition: transform 0.3s; }   /* только композитор */</pre>
   <p class="gap"><strong>Важно:</strong> крутящийся CSS-спиннер не доказывает, что интерфейс отзывчив. Спиннер может идти на композиторе, пока клики ждут в очереди.</p>
-  <h3>Сеньору: что под капотом</h3>
+  <h3>Что под капотом</h3>
   <ul>
     <li><strong>Слои:</strong> браузер сам решает, что вынести на отдельный слой. <code>will-change: transform</code> подсказывает это заранее, но каждый слой расходует память.</li>
     <li><strong>Forced layout:</strong> чтение <code>offsetHeight</code> после записи стилей заставляет считать раскладку сразу. В цикле это даёт layout thrashing.</li>
@@ -615,7 +615,7 @@ console.log("2 синхронно");</pre>
 
   <section id="scheduler">
     <h2>React Scheduler</h2>
-<p><strong>Джуну:</strong> Scheduler — диспетчер React. Он не даёт React занять браузер надолго: поработал немного, уступил, продолжил.</p>
+<p><strong>Простыми словами:</strong> Scheduler — диспетчер React. Он не даёт React занять браузер надолго: поработал немного, уступил, продолжил.</p>
 
 
     <p class="answer">Планировщик режет работу React на короткие macrotasks, чтобы браузер успевал рисовать кадры.</p>
@@ -630,13 +630,13 @@ console.log("2 синхронно");</pre>
   да  → postMessage (браузер может нарисовать кадр)
   нет → следующий компонент</pre>
     <p class="gap"><strong>Ограничение:</strong> прервать можно только между компонентами. Один компонент на 100 мс всё равно заблокирует кадр.</p>
-  <h3>Мидлу: что это даёт на практике</h3>
+  <h3>Что это даёт на практике</h3>
 <ul>
   <li>Несрочный рендер большого списка не блокирует ввод.</li>
   <li>Срочное обновление может прервать незавершённый несрочный рендер, и тот начнётся заново.</li>
   <li>Поэтому компонент может отрендериться, но не попасть на экран. Побочным эффектам в рендере не место.</li>
 </ul>
-<h3>Сеньору: Lanes и выбор API</h3>
+<h3>Lanes и выбор API</h3>
 <p><strong>Lanes</strong> — приоритеты обновлений внутри React в виде битовой маски. Lanes решают, что важнее, а Scheduler решает, когда запускать работу и когда уступить браузеру.</p>
 <div class="tablewrap"><table>
   <thead><tr><th>Источник</th><th>Приоритет</th><th>Как выполняется</th></tr></thead>
@@ -662,7 +662,7 @@ console.log("2 синхронно");</pre>
 
   <section id="phases">
     <h2>Фазы Render и Commit</h2>
-<p><strong>Джуну:</strong> сначала React думает, что должно измениться (Render), потом меняет страницу (Commit). Вызов компонента ещё не значит изменение DOM.</p>
+<p><strong>Простыми словами:</strong> сначала React думает, что должно измениться (Render), потом меняет страницу (Commit). Вызов компонента ещё не значит изменение DOM.</p>
 
 
     <div class="tablewrap"><table>
@@ -680,7 +680,7 @@ console.log("2 синхронно");</pre>
       <li>Браузер рисует кадр.</li>
       <li><code>useEffect</code> обычно выполняется после отрисовки.</li>
     </ol>
-  <h3>Мидлу: порядок и очистка эффектов</h3>
+  <h3>Порядок и очистка эффектов</h3>
 <pre>useEffect(() => {
   const id = setInterval(tick, 1000);
 
@@ -690,7 +690,7 @@ console.log("2 синхронно");</pre>
   <li><strong>Automatic Batching:</strong> несколько <code>setState</code> подряд дают один рендер.</li>
   <li><strong><code>useLayoutEffect</code>:</strong> нужен, когда надо измерить DOM и изменить его до показа. Он блокирует отрисовку, поэтому должен быть быстрым.</li>
 </ul>
-<h3>Сеньору: Fiber</h3>
+<h3>Fiber</h3>
 <p>Fiber — узел дерева с данными о компоненте и незавершённой работе. React строит дерево work-in-progress и в Commit подменяет им текущее. Поэтому незавершённый Render можно выбросить, и пользователь не увидит промежуточное состояние.</p>
 
 </section>
@@ -722,7 +722,7 @@ console.log("2 синхронно");</pre>
 После: key=0 "Борис" &lt;input value="заметка Анны"&gt;   // чужая заметка
        key=1 "Анна"  &lt;input value=""&gt;</pre>
     <p class="gap"><strong>Правило:</strong> используй стабильный уникальный <code>key</code> из данных, например id записи. Индекс допустим, только если список не меняет порядок и у элементов нет состояния.</p>
-  <h3>Мидлу: лишние рендеры и сброс состояния</h3>
+  <h3>Лишние рендеры и сброс состояния</h3>
 <pre>const Row = memo(function Row({ item, onSelect }) { /* ... */ });
 
 // Новая функция на каждый рендер ломает memo
@@ -733,7 +733,7 @@ const onSelect = useCallback((id) =&gt; select(id), [select]);
 &lt;Row item={item} onSelect={onSelect} /&gt;</pre>
 <p class="gap"><strong>Сброс состояния через <code>key</code>:</strong> смена <code>key</code> создаёт компонент заново. Это простой способ очистить форму при смене пользователя:</p>
 <pre>&lt;ProfileForm key={user.id} user={user} /&gt;</pre>
-<h3>Сеньору: почему сравнение быстрое</h3>
+<h3>Почему сравнение быстрое</h3>
 <p>Точное сравнение двух деревьев слишком дорого. React использует эвристику O(n): разный тип значит другое поддерево, а <code>key</code> помогает сопоставить элементы списка. Перенос компонента на другой уровень дерева теряет его состояние, даже если тип тот же.</p>
 
 </section>
@@ -765,8 +765,8 @@ const deferredQuery = useDeferredValue(query);
   &lt;Comments /&gt;
 &lt;/Suspense&gt;</pre>
   <h3>useTransition подробнее</h3>
-<p><strong>Джуну:</strong> «обнови это, когда будет время, но не мешай пользователю». Быстрее работа не становится, зато интерфейс не зависает.</p>
-<p><strong>Мидлу: что важно помнить</strong></p>
+<p><strong>Простыми словами:</strong> «обнови это, когда будет время, но не мешай пользователю». Быстрее работа не становится, зато интерфейс не зависает.</p>
+<p><strong>Что важно помнить</strong></p>
 <ul>
   <li><strong>Suspense:</strong> в транзишне старый контент остаётся на экране, а не сменяется на <code>fallback</code>.</li>
   <li><strong>Поле ввода:</strong> значение <code>input</code> должно обновляться срочно. В транзишн оборачивай только фильтрацию.</li>
@@ -778,7 +778,7 @@ const deferredQuery = useDeferredValue(query);
 
   startTransition(() => setSaved(true));   // после await оборачиваем снова
 });</pre>
-<p class="gap"><strong>Сеньору:</strong> React прерывается только между компонентами, поэтому тяжёлый синхронный код внутри одного компонента транзишн не спасёт. Такую работу разбивают на куски или выносят в Web Worker. Начиная с React 19.3 транзишны рендерятся независимо, и медленный не задерживает быстрый.</p>
+<p class="gap"><strong>Глубже:</strong> React прерывается только между компонентами, поэтому тяжёлый синхронный код внутри одного компонента транзишн не спасёт. Такую работу разбивают на куски или выносят в Web Worker. Начиная с React 19.3 транзишны рендерятся независимо, и медленный не задерживает быстрый.</p>
 
 </section>
 
@@ -792,14 +792,14 @@ const deferredQuery = useDeferredValue(query);
       <li>React подключает обработчики событий и состояние, DOM при этом не пересоздаётся.</li>
     </ol>
     <p><strong>Ошибка hydration:</strong> результат на клиенте отличается от серверного HTML. Частые причины: <code>Date.now()</code>, <code>Math.random()</code>, чтение <code>window</code> во время рендера.</p>
-  <h3>Мидлу: как избежать ошибки</h3>
+  <h3>Как избежать ошибки</h3>
 <pre>// Плохо: сервер и браузер дадут разный результат
 &lt;span&gt;{new Date().toLocaleTimeString()}&lt;/span&gt;
 
 // Хорошо: значение только для браузера появляется после монтирования
 const [time, setTime] = useState(null);
 useEffect(() => setTime(new Date().toLocaleTimeString()), []);</pre>
-<h3>Сеньору: стоимость и частичная гидрация</h3>
+<h3>Стоимость и частичная гидрация</h3>
 <ul class="gap">
   <li><strong>Цена:</strong> до конца hydration страница видна, но клики могут не работать. Тяжёлая гидрация ухудшает INP.</li>
   <li><strong>Selective Hydration:</strong> части внутри Suspense гидрируются отдельно, и React гидрирует раньше ту, по которой кликнули.</li>
@@ -886,14 +886,14 @@ const { pending, data, method, action } = useFormStatus();</pre>
       <li>После этого первый запрос тоже получает старую версию и запускает генерацию в фоне.</li>
       <li>Когда генерация закончена, следующие запросы получают новую страницу.</li>
     </ol>
-  <h3>Джуну: как выбрать</h3>
+  <h3>Как выбрать</h3>
 <ol>
   <li>Страница одинакова для всех и редко меняется? Static.</li>
   <li>Одинакова для всех, но обновляется? ISR.</li>
   <li>Зависит от пользователя или запроса? SSR.</li>
   <li>Закрытый интерфейс, поисковики не важны? Подойдёт и CSR.</li>
 </ol>
-<h3>Мидлу: Server и Client Components</h3>
+<h3>Server и Client Components</h3>
 <div class="tablewrap"><table>
   <thead><tr><th></th><th>Server Component</th><th>Client Component</th></tr></thead>
   <tbody>
@@ -904,7 +904,7 @@ const { pending, data, method, action } = useFormStatus();</pre>
   </tbody>
 </table></div>
 <p class="gap"><strong>Важно:</strong> Client Component тоже рендерится на сервере при первой загрузке, а затем гидрируется. <code>'use client'</code> не значит «только в браузере».</p>
-<h3>Сеньору: на что смотреть</h3>
+<h3>На что смотреть</h3>
 <ul>
   <li><strong>Динамика:</strong> чтение <code>cookies()</code> или <code>headers()</code> делает маршрут динамическим, и он теряет статический кэш.</li>
   <li><strong>Prefetch:</strong> ссылки создают запросы к серверу, на больших списках это заметная нагрузка.</li>
@@ -943,7 +943,7 @@ const { pending, data, method, action } = useFormStatus();</pre>
 
   <section id="promises">
     <h2>Promise: комбинаторы</h2>
-<p><strong>Джуну:</strong> промис — обещание результата в будущем. Он бывает в трёх состояниях: <code>pending</code>, <code>fulfilled</code> и <code>rejected</code>. Его колбэки <code>.then</code> выполняются как microtasks.</p>
+<p><strong>Простыми словами:</strong> промис — обещание результата в будущем. Он бывает в трёх состояниях: <code>pending</code>, <code>fulfilled</code> и <code>rejected</code>. Его колбэки <code>.then</code> выполняются как microtasks.</p>
 
 
     <pre>const promise = new Promise((resolve, reject) => reject(error));</pre>
@@ -965,7 +965,7 @@ const { pending, data, method, action } = useFormStatus();</pre>
       <li>Таймаут запроса: <code>race</code>.</li>
       <li>Первое успешное зеркало: <code>any</code>.</li>
     </ul>
-  <h3>Мидлу: типичные приёмы</h3>
+  <h3>Типичные приёмы</h3>
 <pre>// Таймаут запроса
 const timeout = new Promise((_, reject) =>
   setTimeout(() => reject(new Error("timeout")), 5000),
@@ -975,7 +975,7 @@ const data = await Promise.race([fetch(url), timeout]);
 // Обработка каждого результата
 const results = await Promise.allSettled(requests);
 const ok = results.filter((r) => r.status === "fulfilled").map((r) => r.value);</pre>
-<h3>Сеньору: подводные камни</h3>
+<h3>Подводные камни</h3>
 <ul class="gap">
   <li><strong>Отмены нет:</strong> <code>all</code> и <code>race</code> не останавливают остальные промисы. Запросы отменяет <code>AbortController</code>.</li>
   <li><strong>Параллельность:</strong> <code>Promise.all</code> на 1000 запросов запустит их сразу. Ограничивай их число пулом.</li>
@@ -1009,7 +1009,7 @@ wss.on("connection", (ws) => {
 socket.onopen = () => socket.send(inputValue);   // отправлять можно после открытия
 socket.onmessage = (event) => console.log(event.data);</pre>
     <p class="gap">На реальном сайте используй <code>wss://</code>. Каждое входящее сообщение обрабатывается в браузере как macrotask.</p>
-  <h3>Мидлу: когда что выбрать</h3>
+  <h3>Когда что выбрать</h3>
 <div class="tablewrap"><table>
   <thead><tr><th>Технология</th><th>Направление</th><th>Подходит для</th></tr></thead>
   <tbody>
@@ -1018,7 +1018,7 @@ socket.onmessage = (event) => console.log(event.data);</pre>
     <tr><td>HTTP-запрос</td><td>запрос и ответ</td><td>обычные операции с данными</td></tr>
   </tbody>
 </table></div>
-<h3>Сеньору: что нужно в продакшене</h3>
+<h3>Что нужно в продакшене</h3>
 <ul class="gap">
   <li><strong>Переподключение:</strong> соединение обрывается, нужен повтор с растущей задержкой.</li>
   <li><strong>Heartbeat:</strong> ping и pong помогают обнаружить зависшее соединение.</li>
@@ -1069,18 +1069,18 @@ function debounce(func, delay) {
   };
 }</pre>
     <p class="gap">Этот <code>throttle</code> выполняет первый вызов сразу, а вызовы внутри интервала отбрасывает, включая последний.</p>
-  <h3>Джуну: как запомнить</h3>
+  <h3>Как запомнить</h3>
 <ul>
   <li><strong>Throttle:</strong> лифт уходит раз в минуту, сколько бы людей ни пришло.</li>
   <li><strong>Debounce:</strong> лифт ждёт, пока люди перестанут заходить.</li>
 </ul>
-<h3>Мидлу: ошибка в React</h3>
+<h3>Ошибка в React</h3>
 <pre>// Плохо: новый debounce на каждый рендер, таймер теряется
 const onChange = debounce(search, 300);
 
 // Хорошо: один экземпляр на компонент
 const onChange = useMemo(() => debounce(search, 300), [search]);</pre>
-<h3>Сеньору: последний вызов и отмена</h3>
+<h3>Последний вызов и отмена</h3>
 <p>В анимациях прокрутки вместо throttle часто берут rAF: не больше одного обновления на кадр. Debounce поиска должен отменять и таймер при размонтировании, и устаревший запрос через <code>AbortController</code>, иначе старый ответ может перезаписать новый.</p>
 <pre>function rafThrottle(func) {
   let scheduled = false;
@@ -1161,7 +1161,7 @@ rotatable.get(0);     // "c"</pre>
 <pre>function saveEvent(event, api = defaultApi) {
   return api.post("/events", event);
 }</pre>
-<p class="gap"><strong>Сеньору:</strong> SOLID — ориентир, а не цель. Абстракция без реальной необходимости тоже усложняет код, поэтому её вводят, когда появилась настоящая потребность.</p>
+<p class="gap"><strong>Глубже:</strong> SOLID — ориентир, а не цель. Абстракция без реальной необходимости тоже усложняет код, поэтому её вводят, когда появилась настоящая потребность.</p>
 
 </section>
 
@@ -1215,7 +1215,7 @@ validators[type](value);</pre>
 };</pre>
 <p class="gap"><strong>Adapter:</strong> приводит данные API к виду приложения.</p>
 <pre>const toEvent = (dto) => ({ id: dto.event_id, title: dto.event_title });</pre>
-<p class="gap"><strong>Сеньору:</strong> в современном React HOC чаще заменяют хуками, а Singleton усложняет тесты и SSR: общий объект на сервере может смешать данные разных пользователей.</p>
+<p class="gap"><strong>Глубже:</strong> в современном React HOC чаще заменяют хуками, а Singleton усложняет тесты и SSR: общий объект на сервере может смешать данные разных пользователей.</p>
 </section>
 </div>
 <aside class="viz" aria-label="Анимация цикла">
