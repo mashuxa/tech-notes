@@ -144,6 +144,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   <a href="#phases">Render и Commit</a>
   <a href="#reconciliation">Reconciliation и key</a>
   <a href="#concurrent">Transition и Suspense</a>
+  <a href="#activity-dynamic">Activity, dynamic и Drawer</a>
   <a href="#hydration">Hydration</a>
   <a href="#react18">React 18</a>
   <a href="#react19">React 19</a>
@@ -799,7 +800,127 @@ const deferredQuery = useDeferredValue(query);
 
 </section>
 
-  <section id="hydration">
+  
+<section id="activity-dynamic">
+  <h2>Activity + startTransition + next/dynamic + Suspense: форма в Drawer</h2>
+  <p><strong>Ситуация:</strong> на главной странице есть тяжёлая форма в закрытом Drawer с <code>keepMounted</code>. Она не нужна на старте, но должна открываться быстро по клику. Хочется вначале обслужить видимую страницу, затем по возможности заранее скачать и подготовить форму, не захватывая main thread длинной задачей.</p>
+  <h3>За что отвечает каждый механизм</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>API</th><th>Задача</th><th>Ограничение</th></tr></thead>
+    <tbody>
+      <tr><td><code>next/dynamic</code></td><td>Разделение JS на чанки, загрузка кода по требованию</td><td>Не назначает приоритет рендера. Next может начать preload до первого рендера компонента.</td></tr>
+      <tr><td><code>Activity mode="hidden"</code></td><td>Низкоприоритетный предварительный рендер и сохранение состояния скрытого поддерева</td><td>Не ждёт окончания всей гидрации; не исполняет эффекты дочерних компонентов.</td></tr>
+      <tr><td><code>startTransition</code></td><td>Обозначает <em>обновления состояния</em> как несрочные и прерываемые</td><td>Сам callback выполняется немедленно. Длинный синхронный код нельзя прервать внутри функции.</td></tr>
+      <tr><td><code>Suspense</code></td><td>Fallback, пока ожидается lazy-код или совместимые с Suspense данные</td><td>Сам не откладывает работу. Обычный fetch в useEffect не запускает Suspense.</td></tr>
+      <tr><td><code>keepMounted</code></td><td>Не удалять содержимое Modal/Drawer после закрытия</td><td>Сам по себе не снижает приоритет и не делает загрузку ленивой.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Когда реально загружается JS-чанк внутри hidden Activity?</h3>
+  <ol>
+    <li><code>mode="hidden"</code>: React сначала занимается видимой частью страницы, а рендер содержимого Activity планирует с более низким приоритетом.</li>
+    <li>Когда React в фоне <strong>впервые пытается отрендерить</strong> <code>DynamicForm</code>, lazy-загрузчик при необходимости запрашивает чанк. То есть это может произойти <strong>пока Drawer закрыт</strong>, без переключения на <code>visible</code>.</li>
+    <li>После получения JS React может отрендерить форму в скрытом дереве. Она остаётся невидимой; эффекты пока не монтируются.</li>
+    <li>По клику <code>mode="visible"</code> показывает подготовленную форму с сохранением состояния и запускает эффекты. Если код ещё не готов, отображается loading/fallback.</li>
+  </ol>
+  <div class="note"><strong>Точность про next/dynamic:</strong> Next может предварительно загрузить чанк через <em>preload</em> ещё <strong>до</strong> попытки фонового React-рендера (зависит от SSR, конфигурации, маршрута и сборки). Поэтому время появления сетевого запроса не гарантированно совпадёт с шагом 2. <code>Activity</code> не контролирует сетевой preload; проверь Chrome DevTools → Network.</div>
+  <h3>Как понять, что первичная инициализация закончилась?</h3>
+  <p><strong>У React нет общего события «вся страница гидрирована, main thread свободен».</strong> <code>useEffect</code> свидетельствует о работе конкретного компонента, не всей страницы. <code>requestAnimationFrame</code> вызывается перед paint — одного rAF недостаточно, чтобы дождаться его окончания. Можно дать браузеру <em>возможность</em> нарисовать кадр, отправив следующую задачу после rAF, и запросить свободное время через <code>requestIdleCallback</code>. Это эвристика, а не строгая гарантия: другие задачи могут продолжаться, а idle-callback с timeout может сработать не в простой. Для критической последовательности явно устанавливай флаг готовности после завершения только тех операций, которые действительно важны.</p>
+  <h3>Пример: подготовить форму после первой отрисовки, но до клика</h3>
+  <p>Реализация для Next.js App Router и MUI Drawer. Первоначально <code>prepare=false</code>, так что форма вообще не включена в React-дерево. После rAF → отдельной task → idle мы ставим <code>prepare=true</code> как Transition. Activity скрыто и готовит форму низкоприоритетно. Клик сразу открывает Drawer; ранний клик включает форму принудительно.</p>
+  <pre><code>'use client';
+import { Activity, startTransition, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+import Drawer from '@mui/material/Drawer';
+
+// Отдельный чанк. ssr:false — только в Client Component.
+const DynamicForm = dynamic(() =&gt; import('./EventForm'), {
+  ssr: false,
+  loading: () =&gt; &lt;p role="status"&gt;Загрузка формы…&lt;/p&gt;,
+});
+
+export function EventFormDrawer() {
+  const [open, setOpen] = useState(false);
+  const [prepare, setPrepare] = useState(false);
+
+  useEffect(() =&gt; {
+    let idleId: number | undefined;
+    let timerId: ReturnType&lt;typeof setTimeout&gt; | undefined;
+
+    // rAF — до paint. Следующая task лишь даёт браузеру шанс
+    // показать первый кадр, а НЕ гарантирует окончание гидрации.
+    const frameId = requestAnimationFrame(() =&gt; {
+      timerId = setTimeout(() =&gt; {
+        const enable = () =&gt;
+          startTransition(() =&gt; setPrepare(true));
+
+        if ('requestIdleCallback' in window) {
+          idleId = window.requestIdleCallback(enable, { timeout: 3000 });
+        } else {
+          enable(); // fallback, но обновление всё ещё Transition
+        }
+      }, 0);
+    });
+
+    return () =&gt; {
+      cancelAnimationFrame(frameId);
+      if (timerId !== undefined) clearTimeout(timerId);
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+    };
+  }, []);
+
+  function showForm() {
+    // Клик — срочный. Не оборачиваем setOpen в Transition.
+    setPrepare(true); // если нажали до idle
+    setOpen(true);
+  }
+
+  return (
+    &lt;&gt;
+      &lt;button onClick={showForm}&gt;Открыть форму&lt;/button&gt;
+      &lt;Drawer
+        open={open}
+        onClose={() =&gt; setOpen(false)}
+        ModalProps={{ keepMounted: true }}
+      &gt;
+        {prepare &amp;&amp; (
+          &lt;Activity mode={open ? 'visible' : 'hidden'}&gt;
+            &lt;DynamicForm /&gt;
+          &lt;/Activity&gt;
+        )}
+      &lt;/Drawer&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+  <p><strong>Что важно:</strong> <code>startTransition</code> не делает сетевую загрузку «низкоприоритетной», не освобождает main thread при синхронном разборе JS и не ускоряет саму форму. Если внутри формы один тяжёлый компонент занимает 50 мс, React не прервёт его посередине. Длинные вычисления разбивай на части или выноси в Web Worker. Если форма забирает данные через <code>useEffect</code>, эти запросы начнутся только при <code>visible</code>. Для предварительной загрузки данных нужен отдельный prefetch или Suspense-совместимый источник.</p>
+  <h3>А где Suspense?</h3>
+  <p><code>next/dynamic</code> в примере использует собственный <code>loading</code> для ожидания чанка. Дополнительный <code>Suspense</code> нужен для вложенных приостанавливаемых частей либо при <code>React.lazy</code>. Пример эквивалентного разделения кода:</p>
+  <pre><code>'use client';
+import { Activity, Suspense, lazy } from 'react';
+
+// React.lazy вызывает import() при первой попытке рендера.
+const LazyForm = lazy(() =&gt; import('./EventForm'));
+
+export function FormTree({ open }: { open: boolean }) {
+  return (
+    &lt;Activity mode={open ? 'visible' : 'hidden'}&gt;
+      &lt;Suspense fallback={&lt;p&gt;Загрузка формы…&lt;/p&gt;}&gt;
+        &lt;LazyForm /&gt;
+      &lt;/Suspense&gt;
+    &lt;/Activity&gt;
+  );
+}</code></pre>
+  <p>При использовании <code>React.lazy</code> без отдельной системы preload вызов <code>import()</code> обычно привязан к первой попытке React отрендерить <code>LazyForm</code>. При добавлении <code>prepare</code>-условия из первого примера можно отложить саму попытку рендера. Но и тут браузер/сборщик может иметь отдельные механизмы предварительной загрузки.</p>
+  <h3>Как измерять результат</h3>
+  <ol>
+    <li><strong>Network:</strong> когда загружается JS-чанк EventForm? Сравни с LCP/первым paint и первым кликом.</li>
+    <li><strong>Performance:</strong> ищи long tasks и выполнение JS во время гидрации/первого показа. <code>startTransition</code> помогает React-рендеру, но не сокращает parse/evaluate чанка.</li>
+    <li><strong>React Profiler:</strong> убедись, что форма действительно рендерится после видимого контента и не вызывает лишние обновления.</li>
+    <li><strong>Проверь ранний клик, слабый телефон и медленную сеть:</strong> fallback обязан работать. Замеряй INP/LCP до и после.</li>
+  </ol>
+  <p><strong>Официальные источники:</strong> <a href="https://react.dev/reference/react/Activity">React Activity</a>, <a href="https://react.dev/reference/react/startTransition">React startTransition</a>, <a href="https://react.dev/reference/react/Suspense">React Suspense</a>, <a href="https://nextjs.org/docs/app/guides/lazy-loading">Next.js Lazy Loading</a>.</p>
+</section>
+
+<section id="hydration">
     <h2>Hydration</h2>
     <p class="answer">React подключает интерактивность к HTML, который уже пришёл с сервера.</p>
     <ol>
