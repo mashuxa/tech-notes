@@ -283,15 +283,15 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
       <li>Выполнить <span class="u">все microtasks</span>, включая те, что появились по ходу.</li>
       <li><strong>Только если подошло время кадра:</strong><span class="f" style="display:block; margin-top:4px">rAF → Style calculation → Layout → Paint → Compositing.</span></li>
     </ol>
-    <div class="note gap">
-      <strong>Если внутри rAF создаются новые задачи:</strong>
-      <p class="gap"><strong>Microtask</strong> (<code>queueMicrotask()</code>) выполнится после завершения текущего rAF callback, до продолжения Rendering.</p>
-      <p><strong>Macrotask</strong> (например, <code>setTimeout()</code>) так не выполняется: она ожидает следующего этапа обработки задач и не прерывает текущий Rendering.</p>
-    </div>
     <p class="gap">* Цикл идёт по кругу: 1 → 2 → 3 → 1 …</p>
     <div class="note gap">
       <strong>Если работа не укладывается в кадр, перерисовка кадра (пункт 3) пропускается, и анимация дёргается.</strong>
       <p class="gap">При 60 Гц на кадр есть 16,6 мс: перерисовка пропустится, если macro, одна micro или все micro в сумме идут дольше. Например, работа на 40 мс пропустит 2 кадра, в 16,67 и 33,33 мс, а новый кадр появится на экране в 50 мс.</p>
+    </div>
+    <div class="note gap">
+      <strong>Если внутри rAF создаются новые задачи:</strong>
+      <p class="gap"><strong>Microtask</strong> (<code>queueMicrotask()</code>) выполнится после завершения текущего rAF callback, до продолжения Rendering.</p>
+      <p><strong>Macrotask</strong> (например, <code>setTimeout()</code>) так не выполняется: она ожидает следующего этапа обработки задач и не прерывает текущий Rendering.</p>
     </div>
   </section>
     <aside class="viz" aria-label="Анимация цикла">
