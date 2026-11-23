@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Tech Notes</title>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: одна колонка для чтения; цвета кодируют типы работы, как дорожки на таймлайне Performance */
@@ -20,7 +21,7 @@
   --bg: #11161d; --panel: #1a212b; --fg: #e8edf3; --muted: #9ba8b8; --line: #303a47;
   --macro: #6ea2f5; --micro: #eba93f; --frame: #f06aa8; --on: #11161d; color-scheme: dark }
 body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--sans); }
-.layout { max-width: 1340px; margin: auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: 190px minmax(0, 1fr) 310px; gap: 32px; align-items: start; }
+.layout { max-width: 1340px; margin: auto; padding-block: 72px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: 190px minmax(0, 1fr) 310px; gap: 32px; align-items: start; }
 .viz { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); display: grid; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-size: 14px; line-height: 1.35; min-width: 0; }
 .viz h2 { font-size: 16px; margin: 0; }
 .viz-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
@@ -44,24 +45,42 @@ body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--sans); }
 @media (max-width: 1180px) {
   .layout { grid-template-columns: 160px minmax(0, 1fr) 250px; gap: 22px; }
 }
-.menu { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); display: grid; gap: 2px; font-size: 14px; line-height: 1.35; }
+.menu { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); display: grid; gap: 2px; font-size: 14px; line-height: 1.35; }
 .menu a { color: var(--muted); text-decoration: none; padding: 8px 10px; border-left: 2px solid var(--line); }
 .menu a:hover { color: var(--fg); }
 .menu a:focus-visible { outline: 3px solid var(--frame); outline-offset: 1px; }
 .menu a.active { color: var(--fg); font-weight: 600; border-left-color: var(--frame); }
 section { scroll-margin-top: 72px; }
 .burger { display: none; }
+.desktop-nav-toggle {
+  position: fixed; z-index: 30;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: max(12px, calc((100vw - 1340px) / 2 + 16px));
+  width: 44px; height: 44px; padding: 0;
+  font-size: 20px; line-height: 1;
+  background: var(--panel); color: var(--fg); border: 1px solid var(--line);
+}
+@media (min-width: 1001px) {
+  .layout.nav-collapsed { grid-template-columns: minmax(0, 1fr) 310px; }
+  .layout.nav-collapsed .menu { display: none; }
+  .layout.nav-collapsed .wrap { grid-column: 1; grid-row: 1; }
+  .layout.nav-collapsed .viz { grid-column: 2; grid-row: 1; }
+}
+@media (min-width: 1001px) and (max-width: 1180px) {
+  .layout.nav-collapsed { grid-template-columns: minmax(0, 1fr) 250px; }
+}
 .menu-topic { font-weight: 700; font-size: 15px; color: var(--fg); padding: 12px 0 6px; }
 .menu-topic:first-child { padding-top: 0; }
-.menu { max-height: calc(100dvh - 40px); overflow-y: auto; }
+.menu { max-height: calc(100dvh - 92px); overflow-y: auto; }
 .part { font-size: 26px; font-weight: 700; line-height: 1.2; padding-top: 22px; border-top: 2px solid var(--line); }
 .compare { font-family: var(--mono); font-size: 14px; }
 @media (max-width: 1000px) {
+  .desktop-nav-toggle { display: none; }
   .layout { grid-template-columns: minmax(0, 1fr) 220px; padding-top: 72px; }
   .wrap { grid-column: 1; grid-row: 1; }
   .viz { grid-column: 2; grid-row: 1; }
   .burger { display: block; position: fixed; z-index: 30; top: calc(env(safe-area-inset-top, 0px) + 12px); left: calc(env(safe-area-inset-left, 0px) + 12px); width: 44px; padding: 0; font-size: 22px; line-height: 1; background: var(--panel); color: var(--fg); border: 1px solid var(--line); }
-  .menu { position: fixed; z-index: 20; top: 0; bottom: 0; left: 0; width: min(280px, 85vw); align-content: start; overflow-y: auto; background: var(--bg); border-right: 1px solid var(--line); padding: calc(env(safe-area-inset-top, 0px) + 68px) 12px 24px calc(env(safe-area-inset-left, 0px) + 12px); transform: translateX(-100%); visibility: hidden; transition: transform 0.2s ease, visibility 0.2s; }
+  .menu { position: fixed; z-index: 20; top: 0; bottom: 0; left: 0; max-height: none; width: min(280px, 85vw); align-content: start; overflow-y: auto; background: var(--bg); border-right: 1px solid var(--line); padding: calc(env(safe-area-inset-top, 0px) + 68px) 12px 24px calc(env(safe-area-inset-left, 0px) + 12px); transform: translateX(-100%); visibility: hidden; transition: transform 0.2s ease, visibility 0.2s; }
   .menu.open { transform: none; visibility: visible; }
   .menu a { min-height: 44px; display: flex; align-items: center; }
   .backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.45); }
@@ -121,6 +140,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 </head>
 <body>
 
+<button class="desktop-nav-toggle" id="desktop-nav-toggle" type="button" aria-label="Скрыть навигацию" aria-expanded="true" aria-controls="menu" title="Скрыть навигацию">◀</button>
 <button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="menu">☰</button>
 <div class="backdrop" id="backdrop" hidden></div>
 <div class="layout">
@@ -2106,6 +2126,25 @@ vizPlay.addEventListener("click", () => setPlaying(!vizTimer));
 document.getElementById("viz-next").addEventListener("click", () => { setPlaying(false); nextViz(); });
 renderViz();
 setPlaying(!matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+const pageLayout = document.querySelector(".layout");
+const desktopNavToggle = document.getElementById("desktop-nav-toggle");
+const applyDesktopNav = (collapsed) => {
+  pageLayout.classList.toggle("nav-collapsed", collapsed);
+  desktopNavToggle.textContent = collapsed ? "☰" : "◀";
+  desktopNavToggle.setAttribute("aria-expanded", String(!collapsed));
+  const label = collapsed ? "Показать навигацию" : "Скрыть навигацию";
+  desktopNavToggle.setAttribute("aria-label", label);
+  desktopNavToggle.title = label;
+};
+let desktopNavCollapsed = false;
+try { desktopNavCollapsed = localStorage.getItem("tech-notes-nav-collapsed") === "1"; } catch {}
+applyDesktopNav(desktopNavCollapsed);
+desktopNavToggle.addEventListener("click", () => {
+  desktopNavCollapsed = !desktopNavCollapsed;
+  applyDesktopNav(desktopNavCollapsed);
+  try { localStorage.setItem("tech-notes-nav-collapsed", desktopNavCollapsed ? "1" : "0"); } catch {}
+});
 
 const menu = document.getElementById("menu");
 const burger = document.getElementById("burger");
