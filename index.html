@@ -130,6 +130,21 @@ button:focus-visible { outline: 3px solid var(--frame); outline-offset: 2px; }
 table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 15px; }
 th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
 tr:last-child td { border-bottom: 0; } th { font-weight: 600; color: var(--muted); }
+.task-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+.task-column { min-width: 0; padding: 16px; border: 1px solid var(--line); border-top: 4px solid var(--task-color); background: color-mix(in srgb, var(--task-color) 7%, var(--panel)); border-radius: 8px; }
+.task-column h3 { margin: 0 0 8px; color: var(--task-color); font-size: 18px; }
+.task-column h3 small { font-weight: 400; font-size: 12px; }
+.task-column ul { padding-left: 19px; margin: 10px 0; }
+.task-column li + li { margin-top: 6px; }
+.task-column code { font-size: 12px; overflow-wrap: anywhere; }
+.task-explain { font-size: 14px; }
+.task-note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+.task-macro { --task-color: var(--macro); }
+.task-micro { --task-color: var(--micro); }
+.task-render { --task-color: var(--frame); }
+.task-idle { --task-color: #0e9876; }
+.task-sync { --task-color: var(--muted); grid-column: 1 / -1; }
+@media (max-width: 720px) { .task-columns { grid-template-columns: minmax(0, 1fr); } .task-sync { grid-column: auto; } }
 .why { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 14px; }
 .why > div { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
 pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; line-height: 1.5; }
@@ -584,38 +599,68 @@ JS → fetch(url) → браузер выполняет сетевую опер�
 
   <section id="types">
     <h2>Что macro, что micro и почему</h2>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Источник</th><th>Тип</th><th>Откуда приходит</th></tr></thead>
-      <tbody>
-        <tr><td>Запуск <code>&lt;script&gt;</code></td><td class="m">macro</td><td>браузер загрузил скрипт</td></tr>
-        <tr><td>click, input, scroll</td><td class="m">macro</td><td>пользователь</td></tr>
-        <tr><td><code>setTimeout</code>, <code>setInterval</code></td><td class="m">macro</td><td>истёк таймер</td></tr>
-        <tr><td><code>MessageChannel</code>, <code>postMessage</code></td><td class="m">macro</td><td>доставка сообщения</td></tr>
-        <tr><td>Ответ сети</td><td class="m">macro</td><td>сеть, эта задача резолвит промис <code>fetch</code></td></tr>
-        <tr><td><code>.then</code>, <code>.catch</code>, <code>.finally</code>, продолжение после обычного <code>await</code></td><td class="u">micro</td><td>реакция на завершение Promise; сам executor <code>new Promise(...)</code> выполняется синхронно</td></tr>
-        <tr><td><code>fetch(...).then(fn)</code></td><td class="u">micro</td><td>сетевой ответ обрабатывается браузером; <code>fn</code> — Promise reaction, а не отдельная «fetch macro»</td></tr>
-        <tr><td><code>queueMicrotask</code></td><td class="u">micro</td><td>текущий код</td></tr>
-        <tr><td><code>MutationObserver</code></td><td class="u">micro</td><td>уведомление об изменениях DOM; несколько изменений могут прийти одним callback</td></tr>
-        <tr><td><code>IntersectionObserver</code></td><td class="m">macro</td><td>уведомление о пересечении/видимости доставляется отдельной task</td></tr>
-        <tr><td><code>scheduler.postTask(fn)</code></td><td class="m">macro</td><td>планирует task с приоритетом; доступность API зависит от браузера</td></tr>
-        <tr><td><code>await scheduler.yield()</code></td><td class="m">macro*</td><td>уступает управление; продолжение запланировано как приоритетная task, а не обычная Promise microtask</td></tr>
-        <tr><td><code>requestAnimationFrame</code></td><td class="f">фаза кадра</td><td>отдельный список callback перед отрисовкой</td></tr>
-        <tr><td><code>ResizeObserver</code></td><td class="f">фаза кадра</td><td>уведомляет об изменении размеров в ходе обновления рендеринга, до paint</td></tr>
-        <tr><td><code>requestIdleCallback</code></td><td class="f">idle</td><td>callback в свободное время браузера (или при достижении timeout)</td></tr>
-      </tbody>
-    </table></div>
-    <div class="why">
-      <div>
-        <p><span class="m">Почему macro по одной</span></p>
-        <p>Это отдельные внешние события. Между ними браузер получает шанс нарисовать кадр и обработать клик. Если бы очередь выполнялась целиком, страница зависала бы.</p>
+    <p class="gap">Цвета показывают <strong>как планируется работа</strong>, а не тип функции. Одни API ставят задачи, другие вызываются в фазе кадра. Сам вызов API обычно синхронный; позже запускается его callback.</p>
+    <div class="task-columns" aria-label="Типы работы в браузере">
+      <div class="task-column task-macro">
+        <h3>Macrotasks <small>(tasks)</small></h3>
+        <p class="task-explain">Одна отдельная задача. Между задачами браузер может обработать microtasks и обновить кадр.</p>
+        <ul>
+          <li><code>&lt;script&gt;</code> — первоначальное выполнение скрипта</li>
+          <li><code>click</code>, <code>input</code>, <code>scroll</code> — обработка реальных событий</li>
+          <li><code>setTimeout</code>, <code>setInterval</code> — таймеры</li>
+          <li><code>MessageChannel</code>, <code>postMessage</code> — доставка сообщения</li>
+          <li><code>WebSocket.onmessage</code> — входящее сообщение</li>
+          <li><code>IntersectionObserver</code> — уведомление о пересечении</li>
+          <li><code>scheduler.postTask()</code> — task с приоритетом</li>
+          <li><code>scheduler.yield()</code> — продолжение после уступки управления, как приоритетная task</li>
+        </ul>
+        <p class="task-note">Обработка сетевого ответа происходит асинхронно; последующий <code>fetch().then()</code> выполняется уже как microtask.</p>
       </div>
-      <div>
-        <p><span class="u">Почему micro все сразу</span></p>
-        <p>Это продолжение уже идущей работы. Пока цепочка <code>.then</code> не закончилась, ни клик, ни кадр не вклинятся и не увидят состояние наполовину. Цена: бесконечная цепочка microtasks заморозит страницу.</p>
+      <div class="task-column task-micro">
+        <h3>Microtasks</h3>
+        <p class="task-explain">Вся очередь выполняется перед следующей задачей и возможностью отрисовать кадр.</p>
+        <ul>
+          <li><code>Promise.then()</code></li>
+          <li><code>Promise.catch()</code></li>
+          <li><code>Promise.finally()</code></li>
+          <li>Код после обычного <code>await</code> (когда ожидаемый Promise выполнен)</li>
+          <li><code>queueMicrotask()</code></li>
+          <li><code>MutationObserver</code> — уведомление об изменениях DOM</li>
+        </ul>
+        <p class="task-note">Новые microtasks, созданные во время обработки очереди, тоже выполнятся до следующей task. Длинная цепочка может блокировать экран.</p>
+      </div>
+      <div class="task-column task-render">
+        <h3>Rendering <small>(фаза кадра)</small></h3>
+        <p class="task-explain">Не третья очередь задач: браузер обновляет изображение, когда есть возможность и необходимость.</p>
+        <ul>
+          <li><code>requestAnimationFrame()</code> — callback перед отрисовкой</li>
+          <li><code>ResizeObserver</code> — уведомления при обновлении размеров в ходе рендеринга</li>
+          <li>Style calculation → Layout → Paint → Compositing</li>
+        </ul>
+        <p class="task-note">Если главная нить занята JS или microtasks, подготовка нового кадра задерживается. Некоторые compositor-анимации при этом могут продолжаться.</p>
+      </div>
+      <div class="task-column task-idle">
+        <h3>Idle <small>(свободное время)</small></h3>
+        <p class="task-explain">Браузер даёт выполнить несрочную работу, когда располагает временем.</p>
+        <ul>
+          <li><code>requestIdleCallback()</code> — callback в idle-период (или после заданного timeout)</li>
+        </ul>
+        <p class="task-note">Не гарантирует немедленного вызова; не подходит для анимации. В Safari поддержка ограничена.</p>
+      </div>
+      <div class="task-column task-sync">
+        <h3>Synchronous JS <small>(прямо сейчас)</small></h3>
+        <p class="task-explain">Не отдельная очередь. Код выполняется в текущем Call Stack, пока не завершится.</p>
+        <ul>
+          <li>Обычные вызовы функций, вычисления, <code>console.log()</code></li>
+          <li><code>new Promise(executor)</code> — executor выполняется синхронно</li>
+          <li><code>element.click()</code>, <code>dispatchEvent()</code> — синхронный вызов обработчиков</li>
+          <li>Изменение DOM и чтение <code>offsetWidth</code> (может вызвать принудительный Layout)</li>
+        </ul>
+        <p class="task-note">Web Workers — не ещё одна категория на главном потоке: это отдельные потоки со своими Event Loop.</p>
       </div>
     </div>
-    <p class="gap"><strong>Правило для запоминания:</strong> task (macro) — отдельный запуск работы; microtask — продолжение до следующей task. Но <code>rAF</code>, <code>ResizeObserver</code> и <code>requestIdleCallback</code> привязаны к другим этапам, а не к отдельным «третьей» или «четвёртой» очередям micro/macro. В спецификации macrotask называется <code>task</code>.</p>
-    <p>* В <code>scheduler.yield()</code> возвращается Promise, но браузер планирует продолжение как приоритетную task; это важное отличие от <code>await Promise.resolve()</code>.</p>
+    <p class="gap"><strong>Запомнить:</strong> task → все microtasks → возможный Rendering → следующая task. Idle выполняется, когда браузер выделяет свободное время. Это упрощённая модель; у браузера несколько источников задач, а не одна строго упорядоченная macro-очередь.</p>
+
   
   <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
   <div class="browser-compat" aria-label="Кроссбраузерность">
