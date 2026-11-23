@@ -136,6 +136,16 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 .output { margin-top: 10px; min-height: 120px; }
 .gap { margin-top: 12px; }
 @media (max-width: 480px) { .stats { grid-template-columns: 1fr; } h1 { font-size: 26px; } }
+.browser-compat { margin-top: 26px; padding-top: 8px; border-top: 1px solid var(--line); }
+.browser-compat h3 { margin: 10px 0; font-size: 16px; }
+.compat-table { min-width: 840px; font-size: 13px; }
+.compat-table th, .compat-table td { padding: 8px 9px; }
+.compat-table th:first-child { min-width: 215px; }
+.compat-table tbody td { text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.compat-table thead th { text-align: center; white-space: nowrap; }
+.compat-table thead th:first-child { text-align: left; }
+.compat-table code { font-size: 12px; }
+.compat-note { margin-top: 8px; font-size: 12px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -244,14 +254,37 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 });
 // Вывод: macro, micro 1, micro 2</pre>
     <p class="gap">Шаг 2 заканчивается, только когда очередь microtasks пуста. Похожий сценарий показан в панели «Стек и очереди».</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>queueMicrotask</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="raf">
     <h2>Как часто вызывается rAF?</h2>
     <p class="answer">Раз в кадр: при 60 Гц каждые 16,67 мс (1000 ÷ 60).</p>
     <p>Частоту задаёт экран: при 120 Гц будет 8,33 мс. Это не таймер, поэтому если главный поток занят, кадр пропускается и следующий вызов приходит позже.</p>
     <p>Важная деталь: rAF срабатывает один раз. Чтобы анимация продолжалась, колбэк сам снова вызывает <code>requestAnimationFrame</code>. Несколько колбэков, поставленных до кадра, выполнятся все в этом кадре.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="between">
     <h2>Успевает ли пройти несколько циклов между кадрами?</h2>
@@ -270,7 +303,19 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
       <div class="stat"><strong id="s-tasks">…</strong><small>macrotasks в среднем между кадрами</small></div>
       <div class="stat"><strong id="s-hz">…</strong><small>Гц, частота кадров по замеру</small></div>
     </div>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>MessageChannel</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="blocking">
     <h2>Что блокирует перерисовку?</h2>
@@ -298,7 +343,20 @@ for (const item of items) {
   setTimeout(() => process(item));
 }</pre>
     <p class="gap">С <code>await</code> то же самое: если промис уже выполнен, код после него продолжится как microtask, и паузы для отрисовки не будет.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>queueMicrotask</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>Promise.then / await</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="frame-time">
     <h2>Когда браузер рисует кадр</h2>
@@ -334,7 +392,19 @@ for (const item of items) {
     <p class="gap"><strong>Ограничение:</strong> лимит 5 мс считает только код внутри куска. Micro выполнятся уже после него, и тяжёлые micro всё равно задержат кадр:</p>
     <pre>[кусок macro 5 мс] [micro 30 мс] → кадр задержался</pre>
     <p class="gap">Разбивка работает, только если короткие и macro, и все micro после неё.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>window.postMessage</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="render-stages">
     <h2>Стадии браузерного Render (отрисовки)</h2>
@@ -364,7 +434,19 @@ requestAnimationFrame → Style calculation → Layout → Paint → Compositing
     <p class="gap"><strong>Важно:</strong> не каждый кадр проходит все четыре стадии заново. Если изменилась только позиция уже готового слоя через <code>transform</code>, браузер часто может обойтись без нового Layout и Paint. Если изменился <code>width</code>, обычно потребуются Style → Layout → Paint → Composite.</p>
     <p><strong>Что блокирует:</strong> длинный JS или бесконечная очередь microtasks не дают главному потоку подготовить новый кадр. А CSS-анимации, исполняемые композитором, иногда продолжаются даже при занятом main thread.</p>
     <p><strong>Для React:</strong> React Render — вычисление изменений компонентов, React Commit — запись в DOM, а эти четыре стадии — уже работа самого браузера с DOM/CSS.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>CSS transform / opacity</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="stale">
     <h2>Отменяется ли кадр, если он уже не актуален?</h2>
@@ -374,7 +456,18 @@ requestAnimationFrame → Style calculation → Layout → Paint → Compositing
     <p><strong>Если кадр пропущен,</strong> он не встаёт в очередь и не догоняется. Следующий кадр просто покажет актуальное состояние, поэтому анимация выглядит как рывок.</p>
     <p><strong>Если отрисовка уже началась,</strong> она не прерывается: это такая же работа в главном потоке, и новые задачи ждут её конца.</p>
     <p>Колбэк rAF при пропуске кадра не теряется: он выполнится один раз перед следующей отрисовкой.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="long-render">
     <h2>Может ли сама отрисовка идти дольше кадра?</h2>
@@ -386,7 +479,18 @@ requestAnimationFrame → Style calculation → Layout → Paint → Compositing
 33,33 мс  следующий кадр</pre>
     <p class="gap"><strong>Важные данные, пришедшие во время отрисовки, не теряются.</strong> Событие ждёт в очереди, затем записывает их в DOM, и ближайший кадр их покажет. Пропуск кадра означает задержку, а не потерю. Не увидеть можно только промежуточное значение, если до кадра его перезаписали новым. Этот сценарий есть в конце анимации.</p>
     <p>Обычно это тяжёлые layout и paint: огромный DOM, чтение размеров вперемешку с записью в rAF, дорогие тени и фильтры.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
 <section id="threads">
   <h2>Потоки и CSS-анимации</h2>
@@ -427,7 +531,19 @@ items.forEach((el) => { el.style.height = el.offsetHeight + 10 + "px"; });
 // Хорошо: сначала все чтения, потом все записи
 const heights = items.map((el) => el.offsetHeight);
 items.forEach((el, i) => { el.style.height = heights[i] + 10 + "px"; });</pre>
-</section>
+
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>CSS transform / opacity</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
 
 
@@ -450,7 +566,21 @@ JS → fetch(url) → браузер выполняет сетевую опер�
     <p><strong>Нет единой «очереди Web APIs».</strong> У браузера несколько источников и очередей задач; Event Loop выбирает подходящую задачу, обрабатывает microtasks и может обновить изображение. Поэтому две macro из разных источников не всегда имеют гарантированный порядок.</p>
     <p><strong>Один и тот же callback</strong> может выполняться по-разному. <code>button.addEventListener("click", fn)</code> регистрирует функцию. Реальный пользовательский клик обрабатывается асинхронно как task, а <code>button.click()</code> или <code>dispatchEvent()</code> из JS вызывают обработчики синхронно в текущем стеке.</p>
     <p><strong>Сервер — отдельная среда.</strong> У Node.js свой Event Loop с фазами и API <code>process.nextTick</code>, <code>setImmediate</code>. Здесь разбираем браузер; Node.js есть ниже в разделе Fullstack.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>fetch</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>Promise.then / await</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="types">
     <h2>Что macro, что micro и почему</h2>
@@ -486,7 +616,27 @@ JS → fetch(url) → браузер выполняет сетевую опер�
     </div>
     <p class="gap"><strong>Правило для запоминания:</strong> task (macro) — отдельный запуск работы; microtask — продолжение до следующей task. Но <code>rAF</code>, <code>ResizeObserver</code> и <code>requestIdleCallback</code> привязаны к другим этапам, а не к отдельным «третьей» или «четвёртой» очередям micro/macro. В спецификации macrotask называется <code>task</code>.</p>
     <p>* В <code>scheduler.yield()</code> возвращается Promise, но браузер планирует продолжение как приоритетную task; это важное отличие от <code>await Promise.resolve()</code>.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>queueMicrotask</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>MutationObserver</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>IntersectionObserver</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>ResizeObserver</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>scheduler.postTask</code></th><td>✓ 94+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
+        <tr><th scope="row"><code>scheduler.yield</code></th><td>✓ 129+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>requestIdleCallback</code></th><td>✓ 47+</td><td>✓ 55+</td><td>✓</td><td>Флаг</td><td>Флаг</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+        <p class="compat-note">Safari: requestIdleCallback доступен только экспериментально с флагом; по умолчанию не рассчитывай на него.</p>
+<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="source">
     <h2>Что является macrotask: клик или колбэк?</h2>
@@ -499,7 +649,19 @@ JS → fetch(url) → браузер выполняет сетевую опер�
       <li><code>setTimeout</code>: истёк таймер → задача → колбэк.</li>
     </ul>
     <p>Исключение: <code>button.click()</code> из кода не создаёт задачу, колбэки вызываются сразу, в текущем стеке.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>addEventListener</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="apis">
     <h2>Как работают эти API</h2>
@@ -696,7 +858,24 @@ el.append(b);   // один вызов, в списке 2 записи</pre>
 }</pre>
 <p class="gap">Перед использованием проверяй поддержку: <code>"scheduler" in window &amp;&amp; "yield" in scheduler</code>. Задачи длиннее 50 мс считаются long task и ухудшают метрику INP.</p>
 
-</section>
+
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>MessageChannel</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>window.postMessage</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>queueMicrotask</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>MutationObserver</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>scheduler.yield</code></th><td>✓ 129+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+        <p class="compat-note">Для scheduler.yield проверяй поддержку: Safari не реализует этот API.</p>
+<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="order">
     <h2>Проверь порядок сама</h2>
@@ -708,7 +887,20 @@ console.log("2 синхронно");</pre>
     <p class="gap"><button id="run" type="button">Запустить</button></p>
     <pre class="output" id="output" aria-live="polite">Нажми «Запустить», код выполнится здесь по-настоящему.</pre>
     <p class="gap">Первые три строки идут всегда в порядке: <code>1</code>, <code>2</code>, <code>micro</code>. А вот <code>setTimeout</code> и <code>rAF</code> могут поменяться местами: всё зависит от того, сколько осталось до кадра.</p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>Promise.then / await</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <div class="part">React: как работает внутри</div>
 
@@ -757,7 +949,22 @@ console.log("2 синхронно");</pre>
 </table></div>
 <p class="gap">Параллельности здесь нет: всё идёт в одном потоке, задачи чередуются. React сам уступает управление, это кооперативная многозадачность.</p>
 
-</section>
+
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>MessageChannel</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>scheduler.postTask</code></th><td>✓ 94+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
+        <tr><th scope="row"><code>scheduler.yield</code></th><td>✓ 129+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
+        <tr><th scope="row"><code>requestIdleCallback</code></th><td>✓ 47+</td><td>✓ 55+</td><td>✓</td><td>Флаг</td><td>Флаг</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+        <p class="compat-note">React Scheduler использует собственные механизмы; поддержку React не следует путать с наличием нативного scheduler.postTask. Safari: requestIdleCallback только с экспериментальным флагом.</p>
+<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="phases">
     <h2>Фазы Render и Commit</h2>
@@ -999,7 +1206,20 @@ export function FormTree({ open }: { open: boolean }) {
     <li><strong>Проверь ранний клик, слабый телефон и медленную сеть:</strong> fallback обязан работать. Замеряй INP/LCP до и после.</li>
   </ol>
   <p><strong>Официальные источники:</strong> <a href="https://react.dev/reference/react/Activity">React Activity</a>, <a href="https://react.dev/reference/react/startTransition">React startTransition</a>, <a href="https://react.dev/reference/react/Suspense">React Suspense</a>, <a href="https://nextjs.org/docs/app/guides/lazy-loading">Next.js Lazy Loading</a>.</p>
-</section>
+
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>requestIdleCallback</code></th><td>✓ 47+</td><td>✓ 55+</td><td>✓</td><td>Флаг</td><td>Флаг</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+        <p class="compat-note">React и Next.js — библиотеки, а не Web API. Таблица отражает только используемые ими браузерные методы. Safari: requestIdleCallback экспериментален.</p>
+<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
 <section id="hydration">
     <h2>Hydration</h2>
@@ -1205,7 +1425,20 @@ const ok = results.filter((r) => r.status === "fulfilled").map((r) => r.value);<
 fetch(url, { signal: controller.signal });
 controller.abort();</pre>
 
-</section>
+
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>Promise.all / race</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>Promise.allSettled</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>Promise.any / finally</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="websocket">
     <h2>WebSocket</h2>
@@ -1255,7 +1488,18 @@ socket.onmessage = (event) => console.log(event.data);</pre>
   };
 }</pre>
 
-</section>
+
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>WebSocket</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="file-system-access">
     <h2>File System Access API</h2>
@@ -1323,7 +1567,25 @@ button.addEventListener("click", () =&gt; {
     <p><strong>Что выбрать:</strong> для обычного upload используй <code>&lt;input type="file"&gt;</code> — он проще и поддерживается почти везде. Для редактора файлов или локального файлового менеджера File System Access API полезнее, но нужен fallback.</p>
     <p><strong>Связь с Event Loop:</strong> <code>showOpenFilePicker()</code> и <code>getFile()</code> возвращают Promises. После <code>await</code> продолжение твоей функции идёт через microtask. Сам диалог выбора файла не блокирует JS-поток.</p>
     <p><strong>Документация:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/showOpenFilePicker" target="_blank" rel="noopener noreferrer">MDN: showOpenFilePicker</a> · <a href="https://developer.chrome.com/docs/capabilities/web-apis/file-system-access" target="_blank" rel="noopener noreferrer">Chrome Developers: File System Access</a> · <a href="https://caniuse.com/mdn-api_window_showopenfilepicker" target="_blank" rel="noopener noreferrer">Browser support</a></p>
-  </section>
+  
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>showOpenFilePicker</code></th><td>✓ 86+</td><td>✕</td><td>✓</td><td>✕</td><td>✕</td><td>✓ 132+</td></tr>
+        <tr><th scope="row"><code>showSaveFilePicker</code></th><td>✓ 86+</td><td>✕</td><td>✓</td><td>✕</td><td>✕</td><td>✓ 132+</td></tr>
+        <tr><th scope="row"><code>showDirectoryPicker</code></th><td>✓ 86+</td><td>✕</td><td>✓</td><td>✕</td><td>✕</td><td>✓ 132+</td></tr>
+        <tr><th scope="row"><code>FileSystemFileHandle.getFile</code></th><td>✓ 86+</td><td>✓ 111+</td><td>✓</td><td>✓ 15.2+</td><td>✓ 15.2+</td><td>✓ 109+</td></tr>
+        <tr><th scope="row"><code>FileSystemFileHandle.createWritable</code></th><td>✓ 86+</td><td>✓ 111+</td><td>✓</td><td>✓ 26+</td><td>✓ 26+</td><td>✓ 109+</td></tr>
+        <tr><th scope="row"><code>queryPermission / requestPermission</code></th><td>✓ 86+</td><td>✕</td><td>✓</td><td>✕</td><td>✕</td><td>✓ 109+</td></tr>
+        <tr><th scope="row"><code>input[type=file]</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+        <p class="compat-note">Важно: методы getFile/createWritable доступны также для OPFS — внутреннего файлового хранилища сайта. Это не означает, что Firefox или Safari умеют открывать произвольный файл через showOpenFilePicker. Android — Chrome Android, другие браузеры могут отличаться.</p>
+<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="throttle-debounce">
     <h2>Throttle и debounce</h2>
@@ -1382,7 +1644,18 @@ const onChange = useMemo(() => debounce(search, 300), [search]);</pre>
   };
 }</pre>
 
-</section>
+
+  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
+  <div class="browser-compat" aria-label="Кроссбраузерность">
+    <h3>Кроссбраузерность</h3>
+    <div class="tablewrap"><table class="compat-table">
+      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table></div>
+    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
+  </div></section>
 
   <section id="rotate">
     <h2>Задача: поворот массива без копирования</h2>
