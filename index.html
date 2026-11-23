@@ -313,10 +313,6 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 
   <section id="types">
     <h2>Что macro, что micro и почему</h2>
-    <p class="gap">Цвета показывают <strong>как планируется работа</strong>, а не тип функции. Одни API ставят задачи, другие вызываются в фазе кадра. Сам вызов API обычно синхронный; позже запускается его callback.</p>
-      <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-code"/></svg> Call Stack — где выполняется JavaScript (<button type="button" class="term-trigger" data-glossary="lifo" aria-haspopup="dialog" aria-label="LIFO — объяснение термина">LIFO</button>)</h3>
-      <p><strong>Call Stack — не четвёртая очередь и не отдельная стадия Event Loop.</strong> Это стек вызовов функций, в котором исполняется JavaScript: обычный синхронный код и callbacks из tasks, microtasks или фазы Rendering.</p>
-      <p><strong><button type="button" class="term-trigger" data-glossary="lifo" aria-haspopup="dialog" aria-label="LIFO — объяснение термина">LIFO</button>:</strong> последняя вызванная функция завершится первой. Например, <code>A() → B() → C()</code> возвращаются в порядке <code>C → B → A</code>. Синхронные вызовы, <code>new Promise(executor)</code> и <code>element.click()</code> работают в текущем стеке, а не создают новую task.</p>
     <div class="task-columns" aria-label="Типы работы в браузере">
       <div class="task-column task-macro">
         <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg> Macrotasks <small>(tasks)</small></h3>
@@ -350,7 +346,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
         <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg> Rendering <small>(фаза кадра)</small></h3>
         <p class="task-explain">Не третья очередь задач: браузер обновляет изображение, когда есть возможность и необходимость.</p>
         <ul>
-          <li><code>requestAnimationFrame()</code> — callback перед отрисовкой</li>
+          <li><code>requestAnimationFrame()</code> — callback перед отрисовкой. <strong>!</strong> Если внутри rAF создать microtask, она выполнится после завершения rAF callback, до продолжения Rendering.</li>
           <li><code>ResizeObserver</code> — уведомления при обновлении размеров в ходе рендеринга</li>
           <li>Style calculation → Layout → Paint → Compositing</li>
         </ul>
