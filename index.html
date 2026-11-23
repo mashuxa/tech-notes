@@ -2660,17 +2660,27 @@ const ticks = [16.67, 33.33, 50].map((t) => `<i class="tick" style="left:${Math.
 const scale = `<div class="scale"><b style="left:0">0</b><b style="left:${pct(16.67)}%">16,67 мс</b><b style="left:${pct(33.33)}%">33,33 мс</b><b style="left:100%">50 мс</b></div>`;
 
 let shortRow = "";
-for (const start of [0, 16.67, 33.33]) {
-  // 4 x (3 ms macrotask + 0.5 ms microtasks) = 14 ms; render for 2 ms before the next frame.
-  for (const offset of [0.2, 3.7, 7.2, 10.7]) {
-    shortRow += seg("mt numbered", start + offset, 3, "3 мс");
-    shortRow += seg("ut", start + offset + 3, 0.5);
+for (const [frameIndex, start] of [0, 16.67, 33.33].entries()) {
+  if (frameIndex === 1) {
+    // Second interval: one macro -> one micro -> three further macros.
+    // Each subsequent macro has an empty microtask checkpoint.
+    shortRow += seg("mt numbered", start + 0.2, 3, "3 мс");
+    shortRow += seg("ut", start + 3.2, 0.5);
+    for (const offset of [4.2, 7.7, 11.2]) {
+      shortRow += seg("mt numbered", start + offset, 3, "3 мс");
+    }
+  } else {
+    // First and third intervals: four macro -> micro pairs.
+    for (const offset of [0.2, 3.7, 7.2, 10.7]) {
+      shortRow += seg("mt numbered", start + offset, 3, "3 мс");
+      shortRow += seg("ut", start + offset + 3, 0.5);
+    }
   }
   shortRow += seg("ft labeled", start + 14.5, 2, "2 мс");
 }
 
 timeline.innerHTML = `
-  <div><div class="row-title">4 витка → 1 Rendering (повторяется на каждом кадре)</div><p class="timeline-explain">Один виток: <strong>macrotask — 3 мс</strong> + <strong>microtasks — 0,5 мс</strong>. После четырёх витков — <strong>rAF и Rendering — 2 мс</strong>. Длительности условные.</p><div class="track">${ticks}${shortRow}</div>${scale}</div>
+  <div><div class="row-title">1-й интервал: 4 × (macro → micro). 2-й: macro → micro → 3 macro.</div><p class="timeline-explain">Длительности условные: <strong>macrotask — 3 мс</strong>, <strong>microtask — 0,5 мс</strong>, <strong>Rendering — 2 мс</strong>. Во втором интервале после остальных macrotasks очередь microtasks пуста.</p><div class="track">${ticks}${shortRow}</div>${scale}</div>
   <div><div class="row-title">Одна задача на 40 мс: кадры в 16,67 и 33,33 мс пропущены</div><div class="track">${ticks}${seg("mt long", 0, 40, "одна macrotask, 40 мс")}${seg("ut", 40, 0.5)}${seg("ft labeled", 47.8, 2, "2 мс")}</div>${scale}</div>`;
 
 document.getElementById("run").addEventListener("click", () => {
