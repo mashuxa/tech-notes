@@ -161,6 +161,31 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 .output { margin-top: 10px; min-height: 120px; }
 .gap { margin-top: 12px; }
 @media (max-width: 480px) { .stats { grid-template-columns: 1fr; } h1 { font-size: 26px; } }
+
+/* Clickable technical glossary with one shared native dialog. */
+.term-trigger { appearance: none; display: inline; vertical-align: baseline; padding: 0; min-height: 0; border: 0; border-bottom: 1px dashed currentColor; border-radius: 0; color: inherit; background: none; font: inherit; font-weight: 600; line-height: inherit; cursor: pointer; }
+.term-trigger:hover { color: var(--macro); border-bottom-style: solid; }
+.term-trigger:focus-visible { outline: 2px solid var(--macro); outline-offset: 3px; }
+.glossary-dialog { width: min(760px, calc(100vw - 32px)); max-height: min(82dvh, 850px); overflow-y: auto; padding: 0; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 18px 64px rgba(0,0,0,.28); }
+.glossary-dialog::backdrop { background: rgba(5,10,20,.65); }
+.glossary-shell { padding: 20px 24px 24px; }
+.glossary-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.glossary-top h2 { color: var(--fg); margin: 0; }
+.glossary-close { flex: none; width: 38px; height: 38px; min-height: 38px; padding: 0; display: grid; place-items: center; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; font-size: 24px; font-weight: 400; line-height: 1; }
+.glossary-close:hover { color: var(--fg); background: var(--bg); }
+.glossary-body > p { margin-bottom: 16px; }
+.glossary-api-list { display: grid; grid-template-columns: minmax(170px, .95fr) minmax(0, 2fr); gap: 0 16px; margin: 0; }
+.glossary-api-list dt, .glossary-api-list dd { padding: 9px 0; border-bottom: 1px solid var(--line); margin: 0; }
+.glossary-api-list dt { font: 600 13px/1.5 var(--mono); overflow-wrap: anywhere; }
+.glossary-api-list dd { font-size: 14px; line-height: 1.5; }
+.glossary-api-list dt:last-of-type, .glossary-api-list dd:last-of-type { border-bottom: 0; }
+.glossary-example { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+@media (max-width: 560px) {
+  .glossary-shell { padding: 16px; }
+  .glossary-api-list { display: block; }
+  .glossary-api-list dt { border: 0; padding: 9px 0 0; }
+  .glossary-api-list dd { padding: 2px 0 10px; }
+}
 </style>
 </head>
 <body>
@@ -242,8 +267,8 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   <div class="intro-grid">
   <section id="loop">
     <h2>Один виток цикла</h2>
-<p><strong>Event Loop</strong> — механизм планирования работы браузера. Он выбирает задачу (task) из доступных очередей, запускает её обработку, затем выполняет все накопившиеся microtasks и при необходимости позволяет браузеру обновить изображение. Длительное выполнение JavaScript задерживает обработку следующих задач и рендеринг.</p>
-<p><strong>Call Stack</strong> — стек вызовов JavaScript (LIFO). В нём выполняются синхронный код и callbacks. Пока текущий JS не завершился, браузер не может начать следующую задачу на том же потоке.</p>
+<p>JavaScript — однопоточный язык программирования. <strong>Event Loop</strong> — механизм, который совместно с <button type="button" class="term-trigger" data-glossary="web-apis" aria-haspopup="dialog" aria-label="Web APIs — открыть список и объяснения">Web APIs</button> позволяет выполнять асинхронные задачи без блокировки основного потока во время ожидания.</p>
+<p><strong>Call Stack</strong> — стек вызовов JavaScript (<button type="button" class="term-trigger" data-glossary="lifo" aria-haspopup="dialog" aria-label="LIFO — объяснение термина">LIFO</button>). В нём выполняются синхронный код и callbacks. Пока текущий JS не завершился, браузер не может начать следующую задачу на том же потоке.</p>
 
 
     <ol class="loop">
@@ -280,9 +305,9 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
     <h2>Что macro, что micro и почему</h2>
     <p class="gap">Цвета показывают <strong>как планируется работа</strong>, а не тип функции. Одни API ставят задачи, другие вызываются в фазе кадра. Сам вызов API обычно синхронный; позже запускается его callback.</p>
     <div class="stack-explainer">
-      <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-code"/></svg> Call Stack — где выполняется JavaScript (LIFO)</h3>
+      <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-code"/></svg> Call Stack — где выполняется JavaScript (<button type="button" class="term-trigger" data-glossary="lifo" aria-haspopup="dialog" aria-label="LIFO — объяснение термина">LIFO</button>)</h3>
       <p><strong>Call Stack — не четвёртая очередь и не отдельная стадия Event Loop.</strong> Это стек вызовов функций, в котором исполняется JavaScript: обычный синхронный код и callbacks из tasks, microtasks или фазы Rendering.</p>
-      <p><strong>LIFO (Last In, First Out):</strong> последняя вызванная функция завершится первой. Например, <code>A() → B() → C()</code> возвращаются в порядке <code>C → B → A</code>. Синхронные вызовы, <code>new Promise(executor)</code> и <code>element.click()</code> работают в текущем стеке, а не создают новую task.</p>
+      <p><strong><button type="button" class="term-trigger" data-glossary="lifo" aria-haspopup="dialog" aria-label="LIFO — объяснение термина">LIFO</button>:</strong> последняя вызванная функция завершится первой. Например, <code>A() → B() → C()</code> возвращаются в порядке <code>C → B → A</code>. Синхронные вызовы, <code>new Promise(executor)</code> и <code>element.click()</code> работают в текущем стеке, а не создают новую task.</p>
     </div>
     <div class="task-columns" aria-label="Типы работы в браузере">
       <div class="task-column task-macro">
@@ -327,7 +352,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 
     </div>
     <p class="idle-footnote"><svg class="task-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg> <strong>* Idle (свободное время):</strong> <code>requestIdleCallback(fn)</code> просит браузер выполнить несрочную работу на главном потоке при наличии свободного времени. Callback может долго ждать; параметр <code>timeout</code> позволяет вызвать его и без свободного времени. <code>deadline.timeRemaining()</code> оценивает доступный бюджет, <code>deadline.didTimeout</code> указывает на истёкший timeout. Длинная работа всё равно блокирует интерфейс; в Safari нужна проверка поддержки.</p>
-    <p class="gap"><strong>Запомнить:</strong> task → microtask checkpoint (вся очередь microtasks) → при необходимости Rendering → следующая task. Call Stack (LIFO) — место выполнения, а не отдельная очередь.</p>
+    <p class="gap"><strong>Запомнить:</strong> task → microtask checkpoint (вся очередь microtasks) → при необходимости Rendering → следующая task. Call Stack (<button type="button" class="term-trigger" data-glossary="lifo" aria-haspopup="dialog" aria-label="LIFO — объяснение термина">LIFO</button>) — место выполнения, а не отдельная очередь.</p>
 <h3>Почему rAF и ResizeObserver — не microtasks</h3>
 <p>Браузер вызывает <code>requestAnimationFrame</code> при обновлении кадра, а <code>ResizeObserver</code> — в процессе обновления рендеринга после Layout и перед Paint. Это <strong>не очередь microtasks</strong>. Но внутри их callbacks можно вызвать <code>queueMicrotask()</code> или завершить Promise: тогда созданное продолжение будет уже microtask.</p>
 <pre>requestAnimationFrame(() =&gt; {
@@ -2179,7 +2204,67 @@ validators[type](value);</pre>
 </div>
 </div>
 
+<dialog class="glossary-dialog" id="glossary-dialog" aria-labelledby="glossary-title">
+  <div class="glossary-shell">
+    <div class="glossary-top">
+      <h2 id="glossary-title"></h2>
+      <button class="glossary-close" id="glossary-close" type="button" aria-label="Закрыть справку">×</button>
+    </div>
+    <div class="glossary-body" id="glossary-body"></div>
+  </div>
+</dialog>
+<template id="glossary-web-apis">
+  <p><strong>Web APIs</strong> — интерфейсы браузера для работы с сетью, событиями, файлами, рендерингом и другими возможностями среды. Способ планирования callbacks у них различается.</p>
+  <dl class="glossary-api-list">
+    <dt>setTimeout()</dt><dd>Планирует однократный вызов функции не раньше указанной задержки.</dd>
+    <dt>setInterval()</dt><dd>Периодически планирует вызов функции с заданным интервалом.</dd>
+    <dt>fetch()</dt><dd>Выполняет сетевой запрос и возвращает Promise с ответом.</dd>
+    <dt>XMLHttpRequest</dt><dd>Отправляет HTTP-запросы; сообщает о загрузке и прогрессе через события.</dd>
+    <dt>WebSocket</dt><dd>Поддерживает постоянное двустороннее соединение с сервером.</dd>
+    <dt>EventSource (SSE)</dt><dd>Получает поток событий, которые сервер отправляет по HTTP.</dd>
+    <dt>addEventListener()</dt><dd>Регистрирует обработчик события; само добавление обработчика синхронно.</dd>
+    <dt>postMessage()</dt><dd>Передаёт сообщение другому окну или Web Worker.</dd>
+    <dt>MessageChannel</dt><dd>Создаёт два связанных порта для асинхронного обмена сообщениями.</dd>
+    <dt>requestAnimationFrame()</dt><dd>Вызывает функцию перед очередным обновлением кадра.</dd>
+    <dt>requestIdleCallback()</dt><dd>Планирует несрочную работу на время простоя браузера.</dd>
+    <dt>IntersectionObserver</dt><dd>Сообщает о пересечении элемента с областью наблюдения.</dd>
+    <dt>ResizeObserver</dt><dd>Сообщает об изменении размеров наблюдаемого элемента.</dd>
+    <dt>MutationObserver</dt><dd>Сообщает об изменениях DOM через очередь microtasks.</dd>
+    <dt>PerformanceObserver</dt><dd>Получает записи о производительности страницы.</dd>
+    <dt>IndexedDB</dt><dd>Асинхронно сохраняет и читает структурированные данные в браузере.</dd>
+    <dt>FileReader</dt><dd>Асинхронно читает содержимое File или Blob.</dd>
+    <dt>Geolocation API</dt><dd>Запрашивает местоположение пользователя с его разрешения.</dd>
+    <dt>getUserMedia()</dt><dd>Запрашивает доступ к камере и/или микрофону.</dd>
+    <dt>Web Workers</dt><dd>Запускают JavaScript в отдельном потоке с обменом сообщениями.</dd>
+  </dl>
+</template>
+<template id="glossary-lifo">
+  <p><strong>LIFO — Last In, First Out</strong> («последним пришёл — первым вышел»). Принцип работы стека: последняя добавленная функция завершается первой.</p>
+  <div class="glossary-example"><strong>Пример Call Stack:</strong> <code>A() → B() → C()</code> — вызовы вложены друг в друга. Возврат из функций происходит в обратном порядке: <code>C() → B() → A()</code>.</div>
+</template>
+
 <script>
+const glossaryDialog = document.getElementById("glossary-dialog");
+const glossaryTitle = document.getElementById("glossary-title");
+const glossaryBody = document.getElementById("glossary-body");
+const glossaryTerms = {
+  "web-apis": { title: "Web APIs", template: "glossary-web-apis" },
+  lifo: { title: "LIFO — Last In, First Out", template: "glossary-lifo" }
+};
+document.addEventListener("click", (event) => {
+  const trigger = event.target.closest(".term-trigger[data-glossary]");
+  if (!trigger) return;
+  const term = glossaryTerms[trigger.dataset.glossary];
+  if (!term) return;
+  glossaryTitle.textContent = term.title;
+  glossaryBody.replaceChildren(document.getElementById(term.template).content.cloneNode(true));
+  glossaryDialog.showModal();
+});
+document.getElementById("glossary-close").addEventListener("click", () => glossaryDialog.close());
+glossaryDialog.addEventListener("click", (event) => {
+  if (event.target === glossaryDialog) glossaryDialog.close();
+});
+
 const VIZ = [
   { step: 0, stack: [], macro: ["macro 1: клик", "macro 2: setTimeout"], micro: [], note: "В очереди две macro. Берём только первую." },
   { step: 0, stack: ["macro 1: клик"], macro: ["macro 2: setTimeout"], micro: [], note: "Macro 1 выполняется в стеке." },
