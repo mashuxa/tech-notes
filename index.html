@@ -134,14 +134,14 @@ tr:last-child td { border-bottom: 0; } th { font-weight: 600; color: var(--muted
 .task-icon { display: inline-block; vertical-align: -3px; width: 20px; height: 20px; flex: none; stroke: currentColor; stroke-width: 1.9; fill: none; stroke-linejoin: round; stroke-linecap: round; }
 .task-column h3 .task-icon { vertical-align: -4px; }
 .task-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
-.task-column { min-width: 0; padding: 16px; border: 1px solid var(--line); border-top: 4px solid var(--task-color); background: color-mix(in srgb, var(--task-color) 7%, var(--panel)); border-radius: 8px; }
+.task-column { display: flex; flex-direction: column; min-width: 0; padding: 16px; border: 1px solid var(--line); border-top: 4px solid var(--task-color); background: color-mix(in srgb, var(--task-color) 7%, var(--panel)); border-radius: 8px; }
 .task-column h3 { margin: 0 0 8px; color: var(--task-color); font-size: 18px; }
 .task-column h3 small { font-weight: 400; font-size: 12px; }
 .task-column ul { padding-left: 19px; margin: 10px 0; }
 .task-column li + li { margin-top: 6px; }
 .task-column code { font-size: 12px; overflow-wrap: anywhere; }
 .task-explain { font-size: 14px; }
-.task-note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+.task-note { font-size: 13px; color: var(--muted); margin-top: auto; padding-top: 12px; }
 .task-macro { --task-color: var(--macro); }
 .task-micro { --task-color: var(--micro); }
 .task-render { --task-color: var(--frame); }
