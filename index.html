@@ -255,6 +255,13 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   color:var(--on); font:600 10px/1 var(--mono);
   white-space:nowrap; overflow:hidden;
 }
+
+/* Three separate captions are aligned under their respective 16.67 ms intervals. */
+.interval-captions { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); margin: 4px 0 10px; }
+.interval-caption { display:flex; flex-direction:column; gap:3px; padding:4px 8px; font-size:12px; line-height:1.45; color:var(--muted); font-weight:400; overflow-wrap:anywhere; }
+.interval-caption + .interval-caption { border-left:1px solid var(--line); }
+.timeline-explain { font-size:12px; color:var(--muted); font-weight:400; margin:4px 0 0; }
+@media (max-width:600px) { .interval-caption { padding:4px; font-size:11px; } }
 </style>
 </head>
 <body>
@@ -445,11 +452,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 
     </div>
     <p class="idle-footnote"><svg class="task-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg> <strong>* Idle (свободное время):</strong> <code>requestIdleCallback(fn)</code> просит браузер выполнить несрочную работу на главном потоке при наличии свободного времени. Callback может долго ждать; параметр <code>timeout</code> позволяет вызвать его и без свободного времени. <code>deadline.timeRemaining()</code> оценивает доступный бюджет, <code>deadline.didTimeout</code> указывает на истёкший timeout. Длинная работа всё равно блокирует интерфейс; в Safari нужна проверка поддержки.</p>
-<h3>Почему rAF и ResizeObserver — не microtasks</h3>
-<pre>requestAnimationFrame(() =&gt; {
-  console.log("rAF");              // callback фазы кадра
-  queueMicrotask(() =&gt; console.log("micro")); // микротаска
-});</pre></section>
+</section>
 
   <section id="during">
     <h2>Попадут ли задачи, созданные на лету, в этот же цикл?</h2>
@@ -2690,7 +2693,17 @@ for (const [frameIndex, start] of [0, 16.67, 33.33].entries()) {
 }
 
 timeline.innerHTML = `
-  <div><div class="row-title">1-й интервал: 4 × (macro → micro). 2-й: macro → micro → 3 macro. 3-й: macro → 6 micro → macro → 4 micro.</div><p class="timeline-explain">Длительности условные: <strong>macrotask — 3 мс</strong>, <strong>microtask — 0,5 мс</strong>, <strong>Rendering — 2 мс</strong>. В третьем интервале первая macrotask создаёт 6 microtasks, а следующая — ещё 4.</p><div class="track">${ticks}${shortRow}</div>${scale}</div>
+  <div>
+    <div class="row-title">Несколько витков между кадрами</div>
+    <div class="track">${ticks}${shortRow}</div>
+    ${scale}
+    <div class="interval-captions" aria-label="Порядок задач в каждом интервале">
+      <div class="interval-caption"><span>1-й интервал</span><span>4 × (macro → micro)</span></div>
+      <div class="interval-caption"><span>2-й интервал</span><span>macro → micro → 3 macro</span></div>
+      <div class="interval-caption"><span>3-й интервал</span><span>macro → 6 micro → macro → 4 micro</span></div>
+    </div>
+    <p class="timeline-explain">Длительности условные: macrotask — 3 мс, microtask — 0,5 мс, Rendering — 2 мс.</p>
+  </div>
   <div><div class="row-title">Одна задача на 40 мс: кадры в 16,67 и 33,33 мс пропущены</div><div class="track">${ticks}${seg("mt long", 0, 40, "одна macrotask, 40 мс")}${seg("ut", 40, 0.5)}${seg("ft labeled", 47.8, 2, "2 мс")}</div>${scale}</div>`;
 
 document.getElementById("run").addEventListener("click", () => {
