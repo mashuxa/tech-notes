@@ -201,6 +201,26 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 .faq-item > summary:focus-visible { outline:2px solid var(--macro); outline-offset:2px; }
 .faq-answer { padding:4px 12px 18px 22px; }
 .faq-answer > :last-child { margin-bottom:0; }
+
+/* Separate addressable documentation topics. Hidden topics never create one long page. */
+.wrap > .part, .wrap > .intro-grid, .wrap > section[id]:not(.doc-home) { display:none; }
+.doc-home[hidden], .doc-page[hidden] { display:none!important; }
+.doc-page { min-width:0; display:grid; gap:36px; }
+.doc-page > .part { margin:0; }
+.home-title { color:var(--fg); margin:0 0 8px; font-size:22px; }
+.tile-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:18px; }
+.topic-tile { display:block; text-decoration:none; color:var(--fg); background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px; }
+.topic-tile:hover { border-color:var(--macro); }
+.topic-tile:focus-visible { outline:2px solid var(--macro); outline-offset:2px; }
+.topic-tile strong { display:block; font-size:18px; margin-bottom:8px; }
+.topic-tile small { display:block; color:var(--muted); line-height:1.45; font-size:13px; }
+.menu-topic > a { display:block; color:var(--fg); text-decoration:none; }
+.menu-topic > a.active-topic, .menu-topic > a:hover { color:var(--macro); }
+.page-header h1 a { color:inherit; text-decoration:none; }
+.page-header h1 a:hover { color:var(--macro); }
+.doc-pager { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:18px; border-top:1px solid var(--line); }
+.doc-pager a { color:var(--macro); text-decoration:none; }
+.doc-pager a:hover { text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -217,66 +237,79 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 <div class="backdrop" id="backdrop" hidden></div>
 <div class="layout">
 <nav class="menu" id="menu" aria-label="Темы">
-  <div class="menu-topic">Event Loop</div>
-  <a href="#loop">Один виток цикла</a>
-  <a href="#types">Micro, macro и другие</a>
-  <a href="#web-apis">Web APIs и очереди</a>
-  <a href="#during">Задачи на лету</a>
-  <a href="#raf">Как часто вызывается rAF</a>
-  <a href="#between">Циклы между кадрами</a>
-  <a href="#blocking">Что блокирует перерисовку</a>
-  <a href="#frame-time">Когда рисуется кадр</a>
-  <a href="#render-stages">Стадии Render</a>
-  <a href="#stale">Отмена кадра</a>
-  <a href="#long-render">Долгая отрисовка</a>
-  <a href="#threads">Потоки и CSS-анимации</a>
-  <a href="#source">Клик или колбэк</a>
-  <a href="#apis">Как работают API</a>
-  <a href="#order">Проверить порядок</a>
-  <div class="menu-topic">React</div>
-  <a href="#scheduler">Scheduler</a>
-  <a href="#phases">Render и Commit</a>
-  <a href="#reconciliation">Reconciliation и key</a>
-  <a href="#concurrent">Transition и Suspense</a>
-  <a href="#activity-dynamic">Activity, dynamic и Drawer</a>
-  <a href="#hydration">Hydration</a>
-  <a href="#react18">React 18</a>
-  <a href="#react19">React 19</a>
-  <a href="#react193">React 19.3</a>
-  <div class="menu-topic">Next.js</div>
-  <a href="#next-rendering">Способы рендеринга</a>
-  <a href="#next-new">Next.js 16.3 и 16.4</a>
-  <div class="menu-topic">JavaScript</div>
-  <a href="#promises">Promise</a>
-  <a href="#websocket">WebSocket</a>
-  <a href="#file-system-access">File System Access API</a>
-  <a href="#throttle-debounce">Throttle и debounce</a>
-  <a href="#rotate">Поворот массива</a>
-  <div class="menu-topic">Архитектура</div>
-  <a href="#solid">SOLID</a>
-  <a href="#patterns">Паттерны</a>
-  <div class="menu-topic">Топ-100 вопросов</div>
-  <a href="#qa-js">JavaScript (1–25)</a>
-  <a href="#qa-browser">Браузер и CSS (26–40)</a>
-  <a href="#qa-ts">TypeScript (41–48)</a>
-  <a href="#qa-react">React (49–72)</a>
-  <a href="#qa-next">Next.js (73–82)</a>
-  <a href="#qa-web">Сеть и безопасность (83–92)</a>
-  <a href="#qa-arch">Архитектура (93–100)</a>
-  <div class="menu-topic">Топ-100 fullstack</div>
-  <a href="#fs-node">Node.js (1–12)</a>
-  <a href="#fs-db">Базы данных (13–38)</a>
-  <a href="#fs-api">API (39–50)</a>
-  <a href="#fs-cache">Кэш и очереди (51–62)</a>
-  <a href="#fs-design">Системный дизайн (63–80)</a>
-  <a href="#fs-sec">Безопасность (81–87)</a>
-  <a href="#fs-devops">DevOps (88–100)</a>
+  <div class="menu-topic"><a href="?page=event-loop" data-doc-nav>Event Loop</a></div>
+  <a href="?page=event-loop#loop" data-doc-nav>Один виток цикла</a>
+  <a href="?page=event-loop#types" data-doc-nav>Micro, macro и другие</a>
+  <a href="?page=event-loop#web-apis" data-doc-nav>Web APIs и очереди</a>
+  <a href="?page=event-loop#during" data-doc-nav>Задачи на лету</a>
+  <a href="?page=event-loop#raf" data-doc-nav>Как часто вызывается rAF</a>
+  <a href="?page=event-loop#between" data-doc-nav>Циклы между кадрами</a>
+  <a href="?page=event-loop#blocking" data-doc-nav>Что блокирует перерисовку</a>
+  <a href="?page=event-loop#frame-time" data-doc-nav>Когда рисуется кадр</a>
+  <a href="?page=event-loop#render-stages" data-doc-nav>Стадии Render</a>
+  <a href="?page=event-loop#stale" data-doc-nav>Отмена кадра</a>
+  <a href="?page=event-loop#long-render" data-doc-nav>Долгая отрисовка</a>
+  <a href="?page=event-loop#threads" data-doc-nav>Потоки и CSS-анимации</a>
+  <a href="?page=event-loop#source" data-doc-nav>Клик или колбэк</a>
+  <a href="?page=event-loop#apis" data-doc-nav>Как работают API</a>
+  <a href="?page=event-loop#order" data-doc-nav>Проверить порядок</a>
+  <div class="menu-topic"><a href="?page=react" data-doc-nav>React</a></div>
+  <a href="?page=react#scheduler" data-doc-nav>Scheduler</a>
+  <a href="?page=react#phases" data-doc-nav>Render и Commit</a>
+  <a href="?page=react#reconciliation" data-doc-nav>Reconciliation и key</a>
+  <a href="?page=react#concurrent" data-doc-nav>Transition и Suspense</a>
+  <a href="?page=react#activity-dynamic" data-doc-nav>Activity, dynamic и Drawer</a>
+  <a href="?page=react#hydration" data-doc-nav>Hydration</a>
+  <a href="?page=react#react18" data-doc-nav>React 18</a>
+  <a href="?page=react#react19" data-doc-nav>React 19</a>
+  <a href="?page=react#react193" data-doc-nav>React 19.3</a>
+  <div class="menu-topic"><a href="?page=nextjs" data-doc-nav>Next.js</a></div>
+  <a href="?page=nextjs#next-rendering" data-doc-nav>Способы рендеринга</a>
+  <a href="?page=nextjs#next-new" data-doc-nav>Next.js 16.3 и 16.4</a>
+  <div class="menu-topic"><a href="?page=javascript" data-doc-nav>JavaScript</a></div>
+  <a href="?page=javascript#promises" data-doc-nav>Promise</a>
+  <a href="?page=javascript#websocket" data-doc-nav>WebSocket</a>
+  <a href="?page=javascript#file-system-access" data-doc-nav>File System Access API</a>
+  <a href="?page=javascript#throttle-debounce" data-doc-nav>Throttle и debounce</a>
+  <a href="?page=javascript#rotate" data-doc-nav>Поворот массива</a>
+  <div class="menu-topic"><a href="?page=architecture" data-doc-nav>Архитектура</a></div>
+  <a href="?page=architecture#solid" data-doc-nav>SOLID</a>
+  <a href="?page=architecture#patterns" data-doc-nav>Паттерны</a>
+  <div class="menu-topic"><a href="?page=interview" data-doc-nav>Топ-100 вопросов</a></div>
+  <a href="?page=interview#qa-js" data-doc-nav>JavaScript (1–25)</a>
+  <a href="?page=interview#qa-browser" data-doc-nav>Браузер и CSS (26–40)</a>
+  <a href="?page=interview#qa-ts" data-doc-nav>TypeScript (41–48)</a>
+  <a href="?page=interview#qa-react" data-doc-nav>React (49–72)</a>
+  <a href="?page=interview#qa-next" data-doc-nav>Next.js (73–82)</a>
+  <a href="?page=interview#qa-web" data-doc-nav>Сеть и безопасность (83–92)</a>
+  <a href="?page=interview#qa-arch" data-doc-nav>Архитектура (93–100)</a>
+  <div class="menu-topic"><a href="?page=fullstack" data-doc-nav>Топ-100 fullstack</a></div>
+  <a href="?page=fullstack#fs-node" data-doc-nav>Node.js (1–12)</a>
+  <a href="?page=fullstack#fs-db" data-doc-nav>Базы данных (13–38)</a>
+  <a href="?page=fullstack#fs-api" data-doc-nav>API (39–50)</a>
+  <a href="?page=fullstack#fs-cache" data-doc-nav>Кэш и очереди (51–62)</a>
+  <a href="?page=fullstack#fs-design" data-doc-nav>Системный дизайн (63–80)</a>
+  <a href="?page=fullstack#fs-sec" data-doc-nav>Безопасность (81–87)</a>
+  <a href="?page=fullstack#fs-devops" data-doc-nav>DevOps (88–100)</a>
 </nav>
 <div class="wrap">
   <header class="page-header">
-    <h1>Tech Notes</h1>
+    <h1><a href="./" data-doc-nav>Tech Notes</a></h1>
     <p class="lead">Event Loop, React, Next.js, JavaScript, архитектура и вопросы для собеседований.</p>
   </header>
+  <section id="topic-home" class="doc-home" aria-labelledby="topics-title">
+    <h2 class="home-title" id="topics-title">Разделы документации</h2>
+    <p class="lead">Выбери тему или раздел в оглавлении.</p>
+    <div class="tile-grid">
+      <a class="topic-tile" href="?page=event-loop" data-doc-nav><strong>Event Loop</strong><small>Задачи, микрозадачи, кадры, Web APIs</small></a>
+      <a class="topic-tile" href="?page=react" data-doc-nav><strong>React</strong><small>Scheduler, Render, Commit, React 18–19</small></a>
+      <a class="topic-tile" href="?page=nextjs" data-doc-nav><strong>Next.js</strong><small>Рендеринг и новые возможности</small></a>
+      <a class="topic-tile" href="?page=javascript" data-doc-nav><strong>JavaScript</strong><small>Promise, WebSocket и браузерные API</small></a>
+      <a class="topic-tile" href="?page=architecture" data-doc-nav><strong>Архитектура</strong><small>SOLID и паттерны проектирования</small></a>
+      <a class="topic-tile" href="?page=interview" data-doc-nav><strong>Топ-100 вопросов</strong><small>Frontend: JavaScript, React, Next.js</small></a>
+      <a class="topic-tile" href="?page=fullstack" data-doc-nav><strong>Топ-100 fullstack</strong><small>Node.js, PostgreSQL, API, системный дизайн</small></a>
+    </div>
+  </section>
   <div class="part" style="margin-top:0">Event Loop<small class="part-subtitle">Браузерный</small></div>
 
   <div class="intro-grid">
@@ -2494,23 +2527,99 @@ const toggleMenu = (open) => {
 burger.addEventListener("click", () => toggleMenu(!menu.classList.contains("open")));
 backdrop.addEventListener("click", () => toggleMenu(false));
 document.addEventListener("keydown", (event) => { if (event.key === "Escape") toggleMenu(false); });
-const menuLinks = [...document.querySelectorAll("#menu a")];
-const setActive = (id) => menuLinks.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === `#${id}`));
-menuLinks.forEach((link) => link.addEventListener("click", (event) => {
-  event.preventDefault();
-  const id = link.getAttribute("href").slice(1);
-  const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
-  document.getElementById(id).scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
-  setActive(id);
-  toggleMenu(false);
-}));
-const spy = new IntersectionObserver((entries) => {
-  const visible = entries.filter((entry) => entry.isIntersecting);
-  if (visible.length) setActive(visible[visible.length - 1].target.id);
-}, { rootMargin: "-20% 0px -70% 0px" });
-document.querySelectorAll("section[id]").forEach((section) => spy.observe(section));
-setActive("loop");
 
+/* Document router: topic tiles open a page; sidebar links open a section on that page. */
+const documentationPages = [{"slug":"event-loop","title":"Event Loop"},{"slug":"react","title":"React"},{"slug":"nextjs","title":"Next.js"},{"slug":"javascript","title":"JavaScript"},{"slug":"architecture","title":"Архитектура"},{"slug":"interview","title":"Топ-100 вопросов"},{"slug":"fullstack","title":"Топ-100 fullstack"}];
+const docWrap = document.querySelector(".wrap");
+const topicHome = document.getElementById("topic-home");
+const menuLinks = [...document.querySelectorAll("#menu > a")];
+const topicLinks = [...document.querySelectorAll("#menu .menu-topic > a")];
+const parts = [...docWrap.querySelectorAll(":scope > .part")];
+if (parts.length !== documentationPages.length) throw Error("Doc section count mismatch");
+const docPages = documentationPages.map((entry,index) => {
+  const part = parts[index];
+  const page = document.createElement("div");
+  page.className = "doc-page";
+  page.dataset.page = entry.slug;
+  page.hidden = true;
+  part.before(page);
+  let node = part;
+  while(node && (node === part || !node.classList.contains("part"))) {
+    const next = node.nextElementSibling;
+    page.append(node);
+    node = next;
+  }
+  const pager = document.createElement("nav");
+  pager.className = "doc-pager";
+  pager.setAttribute("aria-label","Соседние темы");
+  const prev = documentationPages[index-1];
+  const next = documentationPages[index+1];
+  const back = document.createElement("a");
+  back.href = prev ? "?page="+prev.slug : "./";
+  back.textContent = prev ? "← "+prev.title : "← Все темы";
+  back.dataset.docNav = "";
+  pager.append(back);
+  if (next) {
+    const forward = document.createElement("a");
+    forward.href = "?page="+next.slug;
+    forward.textContent = next.title+" →";
+    forward.dataset.docNav = "";
+    pager.append(forward);
+  }
+  page.append(pager);
+  return page;
+});
+const sectionPages = Object.fromEntries([...document.querySelectorAll("#menu > a")].map(link => {
+  const url = new URL(link.href);
+  return [decodeURIComponent(url.hash.slice(1)),url.searchParams.get("page")];
+}));
+function showRoute(scroll = true) {
+  const route = new URL(location.href);
+  let slug = route.searchParams.get("page");
+  const anchor = decodeURIComponent(route.hash.slice(1));
+  if(!slug && anchor && sectionPages[anchor]) {
+    slug = sectionPages[anchor];
+    route.searchParams.set("page",slug);
+    history.replaceState(null,"",route.pathname+route.search+route.hash);
+  }
+  const topic = documentationPages.find(p => p.slug === slug);
+  const activeSlug = topic ? slug : null;
+  topicHome.hidden = !!activeSlug;
+  docPages.forEach(page => page.hidden = page.dataset.page !== activeSlug);
+  document.title = topic ? topic.title+" · Tech Notes" : "Tech Notes";
+  topicLinks.forEach(link => {
+    const yes = !!activeSlug && new URL(link.href).searchParams.get("page") === activeSlug;
+    link.classList.toggle("active-topic",yes);
+    if(yes) link.setAttribute("aria-current","page");
+    else link.removeAttribute("aria-current");
+  });
+  menuLinks.forEach(link => {
+    const yes = !!activeSlug && !!anchor && link.getAttribute("href") === "?page="+activeSlug+"#"+anchor;
+    link.classList.toggle("active",yes);
+    if(yes)link.setAttribute("aria-current","location");
+    else link.removeAttribute("aria-current");
+  });
+  if(activeSlug !== "event-loop")setPlaying(false);
+  toggleMenu(false);
+  if(scroll) {
+    const el = anchor ? document.getElementById(anchor) : null;
+    if(el && !el.closest(".doc-page[hidden]")) el.scrollIntoView({behavior:"auto",block:"start"});
+    else window.scrollTo({top:0,left:0,behavior:"auto"});
+  }
+}
+document.addEventListener("click",event => {
+  const link = event.target.closest("a[data-doc-nav]");
+  if(!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target) return;
+  const url = new URL(link.href);
+  if(url.origin !== location.origin || url.pathname !== location.pathname)return;
+  event.preventDefault();
+  const nextUrl = url.pathname+url.search+url.hash;
+  if(nextUrl !== location.pathname+location.search+location.hash)history.pushState(null,"",nextUrl);
+  showRoute();
+});
+window.addEventListener("popstate",() => showRoute());
+window.addEventListener("hashchange",() => showRoute());
+showRoute();
 const timeline = document.getElementById("timeline");
 const pct = (ms) => (ms / 50) * 100;
 const seg = (cls, from, width, text = "") => `<span class="${cls}" style="left:${pct(from)}%;width:${pct(width)}%">${text}</span>`;
