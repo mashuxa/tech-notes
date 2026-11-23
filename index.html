@@ -44,7 +44,7 @@ body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--sans); }
 @media (max-width: 1180px) {
   .layout { grid-template-columns: 190px minmax(0, 1fr); gap: 44px; }
 }
-.menu { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); margin-top: 60px; display: grid; gap: 2px; font-size: 14px; line-height: 1.35; }
+.menu { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); margin-top: 102px; display: grid; gap: 2px; font-size: 14px; line-height: 1.35; }
 .menu a { color: var(--muted); text-decoration: none; padding: 8px 10px; border-left: 2px solid var(--line); }
 .menu a:hover { color: var(--fg); }
 .menu a:focus-visible { outline: 3px solid var(--frame); outline-offset: 1px; }
@@ -73,7 +73,7 @@ html { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--fg) 18%,
 .menu::-webkit-scrollbar-track, html::-webkit-scrollbar-track { background: transparent; }
 .menu::-webkit-scrollbar-thumb, html::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--fg) 18%, var(--bg)); border-radius: 999px; }
 .menu::-webkit-scrollbar-thumb:hover, html::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--fg) 28%, var(--bg)); }
-.part { font-size: 26px; font-weight: 700; line-height: 1.2; padding-top: 22px; border-top: 2px solid var(--line); }
+.part { font-size: 26px; font-weight: 700; line-height: 1.2; padding-top: 22px; border-top: 0; }
 .compare { font-family: var(--mono); font-size: 14px; }
 @media (max-width: 1000px) {
   .desktop-nav-toggle { display: none; }
