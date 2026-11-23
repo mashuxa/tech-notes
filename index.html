@@ -177,6 +177,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   <div class="menu-topic">JavaScript</div>
   <a href="#promises">Promise</a>
   <a href="#websocket">WebSocket</a>
+  <a href="#file-system-access">File System Access API</a>
   <a href="#throttle-debounce">Throttle и debounce</a>
   <a href="#rotate">Поворот массива</a>
   <div class="menu-topic">Архитектура</div>
@@ -1255,6 +1256,74 @@ socket.onmessage = (event) => console.log(event.data);</pre>
 }</pre>
 
 </section>
+
+  <section id="file-system-access">
+    <h2>File System Access API</h2>
+    <p class="answer">Браузер может открыть системный диалог выбора файла и, с разрешения пользователя, читать или сохранять изменения обратно в тот же локальный файл — без <code>&lt;input type="file"&gt;</code>.</p>
+    <p><strong>Чем отличается от обычного upload:</strong> <code>input.files[0]</code> даёт объект <code>File</code> для чтения и загрузки на сервер. <code>showOpenFilePicker()</code> возвращает <code>FileSystemFileHandle</code> — «ссылку» на выбранный локальный файл. Из него можно получить <code>File</code> через <code>getFile()</code>, а при наличии разрешения — записывать изменения через <code>createWritable()</code>.</p>
+    <h3>Основные методы</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>API</th><th>Для чего</th></tr></thead>
+      <tbody>
+        <tr><td><code>showOpenFilePicker()</code></td><td>Выбрать файл или несколько файлов → <code>FileSystemFileHandle[]</code></td></tr>
+        <tr><td><code>handle.getFile()</code></td><td>Получить объект <code>File</code>; можно использовать <code>text()</code>, <code>arrayBuffer()</code>, загружать через <code>FormData</code></td></tr>
+        <tr><td><code>handle.createWritable()</code></td><td>Открыть поток записи; <code>write()</code> и <code>close()</code> сохраняют данные в локальный файл</td></tr>
+        <tr><td><code>showSaveFilePicker()</code></td><td>Выбрать место и имя для сохранения файла → handle</td></tr>
+        <tr><td><code>showDirectoryPicker()</code></td><td>Выбрать папку → <code>FileSystemDirectoryHandle</code>, обходить её содержимое</td></tr>
+        <tr><td><code>handle.queryPermission()</code> / <code>requestPermission()</code></td><td>Проверить или запросить разрешение при поддержке браузером</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Открыть и прочитать файл</h3>
+    <pre>button.addEventListener("click", async () =&gt; {
+  try {
+    // Вызывать из действия пользователя — например, прямо из click.
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description: "Text", accept: { "text/plain": [".txt"] } }]
+    });
+    const file = await handle.getFile(); // тот же File, что и из input
+    console.log(file.name, await file.text());
+  } catch (error) {
+    if (error.name !== "AbortError") console.error(error);
+    // AbortError: пользователь закрыл диалог
+  }
+});</pre>
+    <h3>Изменить и сохранить выбранный файл</h3>
+    <pre>// handle из showOpenFilePicker() или showSaveFilePicker()
+const writable = await handle.createWritable(); // может запросить доступ на запись
+await writable.write("Новый текст");
+await writable.close(); // сохранить изменения</pre>
+    <p>Можно редактировать существующий файл, а не создавать новую скачанную копию. Для текстового редактора это удобнее обычного <code>&lt;input type="file"&gt;</code>.</p>
+    <h3>Кроссбраузерность и ограничения</h3>
+    <ul>
+      <li><strong>Поддержка:</strong> полный набор системных picker-методов ориентирован прежде всего на Chromium (Chrome, Edge, Opera). В Firefox и Safari такие методы недоступны или поддерживаются неполностью; мобильные браузеры особенно важно проверять отдельно.</li>
+      <li><strong>Безопасность:</strong> нужен HTTPS (или localhost) и действие пользователя для открытия picker. Произвольно читать весь диск сайт не может.</li>
+      <li><strong>Разрешения:</strong> доступ к файлу контролирует браузер; при повторном открытии страницы разрешение может потребоваться снова. Handle можно хранить в IndexedDB, но это не обход прав доступа.</li>
+      <li><strong>Отмена:</strong> закрытие диалога обычно приводит к <code>AbortError</code> — это нормальная ситуация.</li>
+    </ul>
+    <h3>Fallback на input type=file</h3>
+    <pre>async function selectFile() {
+  if ("showOpenFilePicker" in window) {
+    const [handle] = await window.showOpenFilePicker();
+    return await handle.getFile();
+  }
+
+  return new Promise((resolve) =&gt; {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.addEventListener("change", () =&gt; resolve(input.files?.[0] ?? null), { once: true });
+    input.click();
+  });
+}
+
+// В обработчике нажатия:
+button.addEventListener("click", () =&gt; {
+  selectFile().then((file) =&gt; { if (file) console.log(file.name); })
+    .catch((error) =&gt; { if (error.name !== "AbortError") console.error(error); });
+});</pre>
+    <p><strong>Что выбрать:</strong> для обычного upload используй <code>&lt;input type="file"&gt;</code> — он проще и поддерживается почти везде. Для редактора файлов или локального файлового менеджера File System Access API полезнее, но нужен fallback.</p>
+    <p><strong>Связь с Event Loop:</strong> <code>showOpenFilePicker()</code> и <code>getFile()</code> возвращают Promises. После <code>await</code> продолжение твоей функции идёт через microtask. Сам диалог выбора файла не блокирует JS-поток.</p>
+    <p><strong>Документация:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/showOpenFilePicker" target="_blank" rel="noopener noreferrer">MDN: showOpenFilePicker</a> · <a href="https://developer.chrome.com/docs/capabilities/web-apis/file-system-access" target="_blank" rel="noopener noreferrer">Chrome Developers: File System Access</a> · <a href="https://caniuse.com/mdn-api_window_showopenfilepicker" target="_blank" rel="noopener noreferrer">Browser support</a></p>
+  </section>
 
   <section id="throttle-debounce">
     <h2>Throttle и debounce</h2>
