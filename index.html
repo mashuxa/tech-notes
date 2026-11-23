@@ -21,7 +21,7 @@
   --bg: #11161d; --panel: #1a212b; --fg: #e8edf3; --muted: #9ba8b8; --line: #303a47;
   --macro: #6ea2f5; --micro: #eba93f; --frame: #f06aa8; --on: #11161d; color-scheme: dark }
 body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--sans); }
-.layout { max-width: 1720px; margin: auto; padding-block: 72px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 28px; align-items: start; }
+.layout { max-width: 1340px; margin: auto; padding-block: 72px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 28px; align-items: start; }
 .viz { position: static; align-self: start; display: grid; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-size: 14px; line-height: 1.35; min-width: 0; }
 .viz h2 { font-size: 16px; margin: 0; }
 .viz-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
@@ -54,7 +54,7 @@ section { scroll-margin-top: 72px; }
 .desktop-nav-toggle {
   position: fixed; z-index: 30;
   top: calc(env(safe-area-inset-top, 0px) + 12px);
-  left: max(12px, calc((100vw - 1720px) / 2 + 16px));
+  left: max(12px, calc((100vw - 1340px) / 2 + 16px));
   width: 44px; height: 44px; padding: 0;
   font-size: 20px; line-height: 1;
   background: var(--panel); color: var(--fg); border: 1px solid var(--line);
@@ -83,8 +83,11 @@ section { scroll-margin-top: 72px; }
 .chip.enter { animation: drop 0.7s ease-out; }
 @media (prefers-reduced-motion: reduce) { .menu { transition: none; } .chip.enter { animation: none; } }
 .wrap { display: grid; gap: 36px; min-width: 0; }
-.intro-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); gap: 24px; align-items: start; min-width: 0; }
+.intro-grid { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 20px; align-items: start; min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
 .intro-grid > * { min-width: 0; }
+.intro-grid .viz { border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent; padding: 0 0 0 18px; }
+.intro-grid #loop > .note { background: var(--bg); }
+@media (max-width: 820px) { .intro-grid { grid-template-columns: minmax(0, 1fr); } .intro-grid .viz { border-left: 0; border-top: 1px solid var(--line); padding: 18px 0 0; } }
 @media (max-width: 760px) { .intro-grid { grid-template-columns: minmax(0, 1fr); } }
 .wrap > * { min-width: 0; }
 h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; text-wrap: balance; }
@@ -137,8 +140,14 @@ tr:last-child td { border-bottom: 0; } th { font-weight: 600; color: var(--muted
 .task-macro { --task-color: var(--macro); }
 .task-micro { --task-color: var(--micro); }
 .task-render { --task-color: var(--frame); }
-.task-idle { --task-color: #0e9876; grid-column: 1 / -1; }
-.task-sync { --task-color: var(--muted); grid-column: 1 / -1; }
+.stack-explainer { border: 1px solid var(--line); border-left: 4px solid var(--muted); border-radius: 8px; background: var(--panel); padding: 14px 16px; margin-top: 14px; }
+.stack-explainer h3 { color: var(--fg); margin: 0 0 8px; font-size: 17px; }
+.stack-explainer p { margin-bottom: 6px; }
+.stack-explainer p:last-child { margin-bottom: 0; }
+.stack-explainer code { overflow-wrap: anywhere; }
+.idle-footnote { border-top: 1px solid var(--line); padding: 12px 2px 0; margin-top: 16px; font-size: 14px; color: var(--muted); }
+.idle-footnote strong { color: var(--fg); }
+.idle-footnote .task-icon { color: #0e9876; }
 @media (max-width: 1100px) { .task-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .task-columns { grid-template-columns: minmax(0, 1fr); } }
 .why { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 14px; }
@@ -265,10 +274,15 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   <section id="types">
     <h2>Что macro, что micro и почему</h2>
     <p class="gap">Цвета показывают <strong>как планируется работа</strong>, а не тип функции. Одни API ставят задачи, другие вызываются в фазе кадра. Сам вызов API обычно синхронный; позже запускается его callback.</p>
+    <div class="stack-explainer">
+      <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-code"/></svg> Call Stack — где выполняется JavaScript (LIFO)</h3>
+      <p><strong>Call Stack — не четвёртая очередь и не отдельная стадия Event Loop.</strong> Это стек вызовов функций, в котором исполняется JavaScript: обычный синхронный код и callbacks из tasks, microtasks или фазы Rendering.</p>
+      <p><strong>LIFO (Last In, First Out):</strong> последняя вызванная функция завершится первой. Например, <code>A() → B() → C()</code> возвращаются в порядке <code>C → B → A</code>. Синхронные вызовы, <code>new Promise(executor)</code> и <code>element.click()</code> работают в текущем стеке, а не создают новую task.</p>
+    </div>
     <div class="task-columns" aria-label="Типы работы в браузере">
       <div class="task-column task-macro">
         <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg> Macrotasks <small>(tasks)</small></h3>
-        <p class="task-explain">Одна отдельная задача. Между задачами браузер может обработать microtasks и обновить кадр.</p>
+        <p class="task-explain">Одна отдельная task. <strong>FIFO действует внутри одного источника задач</strong>, но браузер выбирает между разными источниками, поэтому общей FIFO-очереди макротасок нет. Между tasks возможен Rendering.</p>
         <ul>
           <li><code>&lt;script&gt;</code> — первоначальное выполнение скрипта</li>
           <li><code>click</code>, <code>input</code>, <code>scroll</code> — обработка реальных событий</li>
@@ -283,7 +297,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
       </div>
       <div class="task-column task-micro">
         <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg> Microtasks</h3>
-        <p class="task-explain">Вся очередь выполняется перед следующей задачей и возможностью отрисовать кадр.</p>
+        <p class="task-explain"><strong>FIFO:</strong> микротаски добавляются в конец очереди и обрабатываются по порядку до её опустошения, включая новые, созданные по ходу. До этого новый кадр не начнётся.</p>
         <ul>
           <li><code>Promise.then()</code></li>
           <li><code>Promise.catch()</code></li>
@@ -304,35 +318,11 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
         </ul>
         <p class="task-note">Если главная нить занята JS или microtasks, подготовка нового кадра задерживается. Некоторые compositor-анимации при этом могут продолжаться.</p>
       </div>
-      <div class="task-column task-sync">
-        <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-code"/></svg> Synchronous JS <small>(прямо сейчас)</small></h3>
-        <p class="task-explain">Не отдельная очередь. Код выполняется в текущем Call Stack, пока не завершится.</p>
-        <ul>
-          <li>Обычные вызовы функций, вычисления, <code>console.log()</code></li>
-          <li><code>new Promise(executor)</code> — executor выполняется синхронно</li>
-          <li><code>element.click()</code>, <code>dispatchEvent()</code> — синхронный вызов обработчиков</li>
-          <li>Изменение DOM и чтение <code>offsetWidth</code> (может вызвать принудительный Layout)</li>
-        </ul>
-        <p class="task-note">Web Workers — не ещё одна категория на главном потоке: это отдельные потоки со своими Event Loop.</p>
-      </div>
-      <div class="task-column task-idle">
-        <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg> Idle <small>(свободное время)</small></h3>
-        <p class="task-explain">Браузер даёт выполнить несрочную работу, когда располагает временем.</p>
-        <ul>
-          <li><code>requestIdleCallback()</code> — callback в idle-период (или после заданного timeout)</li>
-        </ul>
-        <p class="task-note">Не гарантирует немедленного вызова; не подходит для анимации. В Safari поддержка ограничена.</p>
-      </div>
+
+
     </div>
-    <p class="gap"><strong>Запомнить:</strong> task → все microtasks → возможный Rendering → следующая task. Idle выполняется, когда браузер выделяет свободное время. Это упрощённая модель; у браузера несколько источников задач, а не одна строго упорядоченная macro-очередь.</p>
-<h3>Как работает Idle</h3>
-<p><code>requestIdleCallback(fn)</code> просит браузер выполнить <strong>несрочную работу</strong> во время простоя (или при истечении указанного <code>timeout</code>). Это не microtask и не фаза отрисовки. Callback работает на главном потоке и может заблокировать интерфейс, если выполняется долго.</p>
-<pre>requestIdleCallback((deadline) =&gt; {
-  while (deadline.timeRemaining() &gt; 0 &amp;&amp; jobs.length) {
-    doWork(jobs.shift());
-  }
-}, { timeout: 2000 });</pre>
-<p><code>deadline.timeRemaining()</code> — примерно сколько времени осталось до следующей важной работы; <code>deadline.didTimeout</code> сообщает, что timeout уже истёк. Без timeout браузер может надолго откладывать callback. С timeout он может выполниться даже без свободного времени: поэтому работу нужно разбивать на короткие порции. Доступность API проверяй отдельно для Safari.</p>
+    <p class="idle-footnote"><svg class="task-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg> <strong>* Idle (свободное время):</strong> <code>requestIdleCallback(fn)</code> просит браузер выполнить несрочную работу на главном потоке при наличии свободного времени. Callback может долго ждать; параметр <code>timeout</code> позволяет вызвать его и без свободного времени. <code>deadline.timeRemaining()</code> оценивает доступный бюджет, <code>deadline.didTimeout</code> указывает на истёкший timeout. Длинная работа всё равно блокирует интерфейс; в Safari нужна проверка поддержки.</p>
+    <p class="gap"><strong>Запомнить:</strong> task → microtask checkpoint (вся очередь microtasks) → при необходимости Rendering → следующая task. Call Stack (LIFO) — место выполнения, а не отдельная очередь.</p>
 <h3>Почему rAF и ResizeObserver — не microtasks</h3>
 <p>Браузер вызывает <code>requestAnimationFrame</code> при обновлении кадра, а <code>ResizeObserver</code> — в процессе обновления рендеринга после Layout и перед Paint. Это <strong>не очередь microtasks</strong>. Но внутри их callbacks можно вызвать <code>queueMicrotask()</code> или завершить Promise: тогда созданное продолжение будет уже microtask.</p>
 <pre>requestAnimationFrame(() =&gt; {
