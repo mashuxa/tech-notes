@@ -133,16 +133,6 @@ tr:last-child td { border-bottom: 0; } th { font-weight: 600; color: var(--muted
 .icon-sprite { position: absolute; overflow: hidden; }
 .task-icon { display: inline-block; vertical-align: -3px; width: 20px; height: 20px; flex: none; stroke: currentColor; stroke-width: 1.9; fill: none; stroke-linejoin: round; stroke-linecap: round; }
 .task-column h3 .task-icon { vertical-align: -4px; }
-.compat-api-label { display: inline-flex; align-items: center; gap: 7px; }
-.compat-api-icon { width: 16px; height: 16px; }
-.compat-kind-macro { --compat-kind: var(--macro); }
-.compat-kind-micro { --compat-kind: var(--micro); }
-.compat-kind-render { --compat-kind: var(--frame); }
-.compat-kind-idle { --compat-kind: #0e9876; }
-.compat-kind-macro th, .compat-kind-micro th, .compat-kind-render th, .compat-kind-idle th { color: var(--compat-kind); background: color-mix(in srgb, var(--compat-kind) 6%, var(--panel)); border-left: 3px solid var(--compat-kind); }
-.compat-table td.compat-yes { background: color-mix(in srgb, #0e9876 8%, var(--panel)); }
-.compat-table td.compat-no { background: color-mix(in srgb, #c24141 8%, var(--panel)); }
-.compat-table td.compat-flag { background: color-mix(in srgb, #b86e00 12%, var(--panel)); }
 .task-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
 .task-column { min-width: 0; padding: 16px; border: 1px solid var(--line); border-top: 4px solid var(--task-color); background: color-mix(in srgb, var(--task-color) 7%, var(--panel)); border-radius: 8px; }
 .task-column h3 { margin: 0 0 8px; color: var(--task-color); font-size: 18px; }
@@ -164,16 +154,6 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 .output { margin-top: 10px; min-height: 120px; }
 .gap { margin-top: 12px; }
 @media (max-width: 480px) { .stats { grid-template-columns: 1fr; } h1 { font-size: 26px; } }
-.browser-compat { margin-top: 26px; padding-top: 8px; border-top: 1px solid var(--line); }
-.browser-compat h3 { margin: 10px 0; font-size: 16px; }
-.compat-table { min-width: 840px; font-size: 13px; }
-.compat-table th, .compat-table td { padding: 8px 9px; }
-.compat-table th:first-child { min-width: 215px; }
-.compat-table tbody td { text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.compat-table thead th { text-align: center; white-space: nowrap; }
-.compat-table thead th:first-child { text-align: left; }
-.compat-table code { font-size: 12px; }
-.compat-note { margin-top: 8px; font-size: 12px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -192,6 +172,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 <nav class="menu" id="menu" aria-label="Темы">
   <div class="menu-topic">Event Loop</div>
   <a href="#loop">Один виток цикла</a>
+  <a href="#types">Micro, macro и другие</a>
   <a href="#web-apis">Web APIs и очереди</a>
   <a href="#during">Задачи на лету</a>
   <a href="#raf">Как часто вызывается rAF</a>
@@ -202,7 +183,6 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   <a href="#stale">Отмена кадра</a>
   <a href="#long-render">Долгая отрисовка</a>
   <a href="#threads">Потоки и CSS-анимации</a>
-  <a href="#types">Micro, macro и другие</a>
   <a href="#source">Клик или колбэк</a>
   <a href="#apis">Как работают API</a>
   <a href="#order">Проверить порядок</a>
@@ -269,353 +249,6 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
       <p class="gap">При 60 Гц на кадр есть 16,6 мс: перерисовка пропустится, если macro, одна micro или все micro в сумме идут дольше. Например, работа на 40 мс пропустит 2 кадра, в 16,67 и 33,33 мс, а новый кадр появится на экране в 50 мс.</p>
     </div>
   </section>
-
-  <section id="during">
-    <h2>Попадут ли задачи, созданные на лету, в этот же цикл?</h2>
-    <p class="answer">Micro да, до перерисовки. Macro нет, она ждёт следующего витка.</p>
-    <p><strong>Новая macro</strong>, например <code>setTimeout</code> из задачи, встаёт в очередь macro. Перед ней браузер может нарисовать кадр.</p>
-    <p><strong>Новая micro</strong> выполнится на этом же шаге. Создать её может и macro, и другая micro.</p>
-    <p>Из macro: задача ставит microtask в очередь, а выполнится та, когда macro закончится и стек опустеет.</p>
-    <p>Из micro: пока идёт одна microtask, она может поставить ещё одну. Новая попадает в ту же очередь и выполнится на этом же шаге, до кадра и до следующей macro.</p>
-    <p><strong>Поэтому мелкие micro могут затормозить кадр.</strong> Даже если они укладываются в кадр, одна из них может создать тяжёлую micro или длинную цепочку micro. Всё это выполнится до перерисовки: кадр задержится, а если работа займёт больше 16,6 мс, следующие кадры будут пропущены.</p>
-    <pre>setTimeout(() => {                 // macro
-  queueMicrotask(() => {           // micro 1: поставила macro
-    queueMicrotask(() => {         // micro 2: поставила micro 1
-      console.log("micro 2");
-    });
-    console.log("micro 1");
-  });
-  console.log("macro");
-});
-// Вывод: macro, micro 1, micro 2</pre>
-    <p class="gap">Шаг 2 заканчивается, только когда очередь microtasks пуста. Похожий сценарий показан в панели «Стек и очереди».</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>queueMicrotask</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
-
-  <section id="raf">
-    <h2>Как часто вызывается rAF?</h2>
-    <p class="answer">Раз в кадр: при 60 Гц каждые 16,67 мс (1000 ÷ 60).</p>
-    <p>Частоту задаёт экран: при 120 Гц будет 8,33 мс. Это не таймер, поэтому если главный поток занят, кадр пропускается и следующий вызов приходит позже.</p>
-    <p>Важная деталь: rAF срабатывает один раз. Чтобы анимация продолжалась, колбэк сам снова вызывает <code>requestAnimationFrame</code>. Несколько колбэков, поставленных до кадра, выполнятся все в этом кадре.</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
-
-  <section id="between">
-    <h2>Успевает ли пройти несколько циклов между кадрами?</h2>
-    <p class="answer">Да, если задачи короткие, витков может быть много. А может не быть ни одного полного кадра, если задача длинная.</p>
-    <div class="scroll"><div class="timeline" id="timeline" role="img" aria-label="Две временные шкалы на 50 миллисекунд. На первой короткие задачи и отрисовка каждые 16,67 мс. На второй задача длиной 40 мс, из-за которой два кадра пропущены."></div></div>
-    <div class="legend">
-      <span><i style="background:var(--macro)"></i>macrotask</span>
-      <span><i style="background:var(--micro)"></i>microtasks</span>
-      <span><i style="background:var(--frame)"></i>rAF и отрисовка</span>
-      <span>Пунктир: момент кадра</span>
-    </div>
-    <p class="gap">Шкалы показывают схему, а длительности условные. Ниже настоящий замер: страница гоняет короткие задачи через <code>MessageChannel</code> и считает, сколько их проходит между кадрами в твоём браузере.</p>
-    <button id="measure" type="button">Замерить ещё раз</button>
-    <div class="stats" aria-live="polite">
-      <div class="stat"><strong id="s-frame">…</strong><small>мс между вызовами rAF</small></div>
-      <div class="stat"><strong id="s-tasks">…</strong><small>macrotasks в среднем между кадрами</small></div>
-      <div class="stat"><strong id="s-hz">…</strong><small>Гц, частота кадров по замеру</small></div>
-    </div>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>MessageChannel</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
-
-  <section id="blocking">
-    <h2>Что блокирует перерисовку?</h2>
-    <p class="answer">И macro, и micro. Браузер рисует, только когда главный поток свободен.</p>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Что выполняется</th><th>Заблокирует на 40 мс?</th><th>Почему</th></tr></thead>
-      <tbody>
-        <tr><td>Одна macro на 40 мс</td><td><strong>Да</strong></td><td>задачу нельзя прервать посередине</td></tr>
-        <tr><td>Одна micro на 40 мс</td><td><strong>Да</strong></td><td>по той же причине</td></tr>
-        <tr><td>Много мелких micro, в сумме 40 мс</td><td><strong>Да</strong></td><td>очередь выполняется целиком, кадр не вклинится</td></tr>
-        <tr><td>Много мелких macro, в сумме 40 мс</td><td><strong>Обычно нет</strong></td><td>между ними браузер может нарисовать кадр</td></tr>
-      </tbody>
-    </table></div>
-    <pre class="gap">Мелкие micro:  [m][m][m][m][m][m][m][m] ... 40 мс подряд → кадр
-Мелкие macro:  [M][M][M] кадр [M][M][M] кадр [M][M]</pre>
-    <p class="gap">Работа занимает те же 40 мс, но мелкие macro дают браузеру рисовать между ними.</p>
-    <p>Поэтому разбивка тяжёлой работы на microtasks не помогает:</p>
-    <pre>// Не помогает: кадр не вклинится, пока очередь не опустеет
-for (const item of items) {
-  queueMicrotask(() => process(item));
-}
-
-// Помогает: каждый setTimeout это отдельная macrotask
-for (const item of items) {
-  setTimeout(() => process(item));
-}</pre>
-    <p class="gap">С <code>await</code> то же самое: если промис уже выполнен, код после него продолжится как microtask, и паузы для отрисовки не будет.</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>queueMicrotask</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.then / await</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
-
-  <section id="frame-time">
-    <h2>Когда браузер рисует кадр</h2>
-    <p class="answer">После каждого витка браузер проверяет, настало ли время кадра. Текущую задачу он никогда не прерывает.</p>
-    <h3>Правила</h3>
-    <ul>
-      <li><strong>Кадр:</strong> при 60 Гц его момент наступает каждые 16,67 мс по сигналу экрана.</li>
-      <li><strong>Micro:</strong> идут вне очереди, все сразу после текущей macro.</li>
-      <li><strong>Macro:</strong> строго по одной за виток.</li>
-      <li><strong>Время кадра не настало:</strong> браузер может взять следующую macro.</li>
-      <li><strong>Время кадра настало во время задачи:</strong> браузер ждёт конца macro и всех micro. Лимита на ожидание нет.</li>
-      <li><strong>Менять на экране нечего:</strong> перерисовки может не быть.</li>
-    </ul>
-    <h3>Пример: кадр опоздал</h3>
-    <pre>0 мс      macro 1
-10 мс     macro 2: время кадра не настало, значит можно
-16,67 мс  момент кадра: macro 2 идёт, браузер ждёт
-20 мс     macro 2 и micro закончились → перерисовка, опоздание 3,33 мс
-22 мс     перерисовка закончилась (допустим, заняла 2 мс)
-33,33 мс  следующий момент кадра</pre>
-    <p class="gap"><strong>Опоздание не сдвигает следующие кадры.</strong> Следующий момент остаётся в 33,33 мс, поэтому на работу до него есть не 16,67 мс, а около 11 мс.</p>
-    <h3>Пример: кадр пропущен</h3>
-    <pre>0 мс      старт задачи на 40 мс
-16,67 мс  момент кадра, задача идёт
-33,33 мс  ещё один момент кадра, задача идёт
-40 мс     задача закончилась → браузер готовит один кадр
-50 мс     ближайший сигнал экрана</pre>
-    <p class="gap">Пропуск не решается заранее: за время задачи прошло несколько моментов кадра, а нарисовать можно только один, с актуальным состоянием. Браузер может подготовить кадр сразу после задачи или ближе к сигналу экрана, это зависит от браузера.</p>
-    <h3>Почему куски macro не блокируют кадр</h3>
-    <p>За один виток выполняется одна macro, поэтому новая macro из <code>postMessage</code> ждёт следующего витка, а перед ним браузер проверяет время кадра.</p>
-    <pre>Виток 1: кусок macro 5 мс → все micro → кадр, если пора
-Виток 2: кусок macro 5 мс → все micro → кадр, если пора</pre>
-    <p class="gap"><strong>Ограничение:</strong> лимит 5 мс считает только код внутри куска. Micro выполнятся уже после него, и тяжёлые micro всё равно задержат кадр:</p>
-    <pre>[кусок macro 5 мс] [micro 30 мс] → кадр задержался</pre>
-    <p class="gap">Разбивка работает, только если короткие и macro, и все micro после неё.</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>window.postMessage</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
-
-  <section id="render-stages">
-    <h2>Стадии браузерного Render (отрисовки)</h2>
-    <p class="answer">После JS и microtasks, когда браузер решает обновить кадр, он выполняет callbacks <code>requestAnimationFrame</code> и необходимые этапы рендеринга.</p>
-    <h3>От HTML/CSS до изображения</h3>
-    <pre>HTML ───────────────→ DOM ───────────────┐
-                                         ├─→ Render tree / Layout tree
-CSS ────────────────→ CSSOM ─────────────┘
-                     ↑
-JavaScript ─── изменяет DOM, классы, inline-стили и CSS-правила
-
-[Обновление кадра, если необходимо]
-requestAnimationFrame → Style calculation → Layout → Paint → Compositing</pre>
-    <p><strong>DOM</strong> — дерево HTML-элементов. <strong>CSSOM</strong> — представление разобранных CSS-правил. Они строятся из HTML и CSS <strong>независимо</strong>: стрелка DOM → CSSOM на картинке вводит в заблуждение.</p>
-    <p><strong>Render tree</strong> — упрощённое учебное название структуры видимых объектов для отображения: на неё влияют и DOM, и CSSOM. Элементы с <code>display: none</code> обычно не создают соответствующих объектов раскладки. В реальных движках структура сложнее, чем одно дерево.</p>
-    <p><strong>JavaScript</strong> может изменить DOM или стили синхронно, но это <em>не означает немедленный Paint</em>: браузер обычно группирует изменения и обновляет кадр позже. Исключение: чтение геометрии вроде <code>offsetWidth</code> после изменения стилей может принудительно запустить Style/Layout прямо во время JS (forced synchronous layout).</p>
-    <p><strong>Event Loop</strong> решает, когда дать браузеру обновить изображение; сами стадии рендеринга — не macrotasks и не microtasks.</p>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Стадия</th><th>Что делает простыми словами</th><th>Пример изменения</th></tr></thead>
-      <tbody>
-        <tr><td><strong>1. Style calculation</strong><br>Recalculate Style</td><td>Определяет, какие CSS-правила применяются и какие итоговые стили у элементов.</td><td>Изменился класс, цвет или CSS-правило.</td></tr>
-        <tr><td><strong>2. Layout</strong><br>Reflow</td><td>Считает размеры и координаты элементов: кто где стоит и сколько места занимает.</td><td>Изменился <code>width</code>, <code>height</code>, <code>font-size</code>.</td></tr>
-        <tr><td><strong>3. Paint</strong></td><td>Готовит инструкции для отрисовки содержимого: текст, цвет, границы, тени; изображение растеризуется в пиксели.</td><td>Изменился <code>background-color</code> или <code>box-shadow</code>.</td></tr>
-        <tr><td><strong>4. Compositing</strong></td><td>Собирает отдельные нарисованные слои в итоговое изображение.</td><td>Анимация <code>transform</code> или <code>opacity</code> часто использует только compositing.</td></tr>
-      </tbody>
-    </table></div>
-    <p class="gap"><strong>Важно:</strong> не каждый кадр проходит все четыре стадии заново. Если изменилась только позиция уже готового слоя через <code>transform</code>, браузер часто может обойтись без нового Layout и Paint. Если изменился <code>width</code>, обычно потребуются Style → Layout → Paint → Composite.</p>
-    <p><strong>Что блокирует:</strong> длинный JS или бесконечная очередь microtasks не дают главному потоку подготовить новый кадр. А CSS-анимации, исполняемые композитором, иногда продолжаются даже при занятом main thread.</p>
-    <p><strong>Для React:</strong> React Render — вычисление изменений компонентов, React Commit — запись в DOM, а эти четыре стадии — уже работа самого браузера с DOM/CSS.</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr><th scope="row"><code>CSS transform / opacity</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
-
-  <section id="stale">
-    <h2>Отменяется ли кадр, если он уже не актуален?</h2>
-    <p class="answer">Отменять нечего: заранее кадр не считается.</p>
-    <p>Браузер считает кадр на шаге 3 и берёт DOM и стили такими, какие они в этот момент. Поэтому устаревшего кадра не бывает: рисуется последнее состояние.</p>
-    <p><strong>Если DOM менялся несколько раз между кадрами,</strong> на экран попадёт только итог. Промежуточные значения никто не увидит.</p>
-    <p><strong>Если кадр пропущен,</strong> он не встаёт в очередь и не догоняется. Следующий кадр просто покажет актуальное состояние, поэтому анимация выглядит как рывок.</p>
-    <p><strong>Если отрисовка уже началась,</strong> она не прерывается: это такая же работа в главном потоке, и новые задачи ждут её конца.</p>
-    <p>Колбэк rAF при пропуске кадра не теряется: он выполнится один раз перед следующей отрисовкой.</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
-
-  <section id="long-render">
-    <h2>Может ли сама отрисовка идти дольше кадра?</h2>
-    <p class="answer">Да. Тогда следующий кадр пропускается, как и при длинной задаче.</p>
-    <p>Rendering в главном потоке (rAF, layout, paint) не прерывается. Пока он идёт, момент следующего кадра проходит впустую, а macro и micro ждут. Новая отрисовка не запустится поверх текущей: второй нет, пока не закончится первая.</p>
-    <pre>0 мс      отрисовка началась (длится 25 мс)
-16,67 мс  момент кадра пропущен
-25 мс     отрисовка закончилась, идут задачи
-33,33 мс  следующий кадр</pre>
-    <p class="gap"><strong>Важные данные, пришедшие во время отрисовки, не теряются.</strong> Событие ждёт в очереди, затем записывает их в DOM, и ближайший кадр их покажет. Пропуск кадра означает задержку, а не потерю. Не увидеть можно только промежуточное значение, если до кадра его перезаписали новым. Этот сценарий есть в конце анимации.</p>
-    <p>Обычно это тяжёлые layout и paint: огромный DOM, чтение размеров вперемешку с записью в rAF, дорогие тени и фильтры.</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
-
-<section id="threads">
-  <h2>Потоки и CSS-анимации</h2>
-  <p class="answer">JS и подготовка кадра идут в главном потоке, а готовую картинку собирает отдельный поток-композитор.</p>
-  <h3>Простыми словами</h3>
-  <p>Анимация <code>transform</code> или <code>opacity</code> двигает уже нарисованный слой, как лист бумаги на столе. Анимация <code>width</code> каждый кадр заново вычисляет раскладку страницы. Первой главный поток обычно не нужен, второй нужен всегда.</p>
-  <div class="tablewrap"><table>
-    <thead><tr><th>Этап</th><th>Где выполняется</th></tr></thead>
-    <tbody>
-      <tr><td>JavaScript, rAF</td><td>главный поток</td></tr>
-      <tr><td>Style, Layout, Paint</td><td>главный поток</td></tr>
-      <tr><td>Растеризация</td><td>потоки растеризации, GPU</td></tr>
-      <tr><td>Composite</td><td>поток композитора, GPU</td></tr>
-    </tbody>
-  </table></div>
-  <h3>На практике</h3>
-  <div class="tablewrap"><table>
-    <thead><tr><th>Анимация</th><th>Что пересчитывается</th><th>Если главный поток занят</th></tr></thead>
-    <tbody>
-      <tr><td><code>width</code>, <code>height</code>, <code>top</code>, <code>left</code></td><td>Layout и Paint</td><td>замирает или дёргается</td></tr>
-      <tr><td><code>background-color</code>, <code>box-shadow</code></td><td>обычно Paint</td><td>замирает или дёргается</td></tr>
-      <tr><td><code>transform</code>, <code>opacity</code></td><td>обычно только Composite</td><td>обычно продолжается</td></tr>
-      <tr><td>JS через <code>requestAnimationFrame</code></td><td>зависит от кода</td><td>замирает</td></tr>
-    </tbody>
-  </table></div>
-  <pre class="gap">.bad  { transition: left 0.3s; }        /* Layout каждый кадр */
-.good { transition: transform 0.3s; }   /* только композитор */</pre>
-  <p class="gap"><strong>Важно:</strong> крутящийся CSS-спиннер не доказывает, что интерфейс отзывчив. Спиннер может идти на композиторе, пока клики ждут в очереди.</p>
-  <h3>Что под капотом</h3>
-  <ul>
-    <li><strong>Слои:</strong> браузер сам решает, что вынести на отдельный слой. <code>will-change: transform</code> подсказывает это заранее, но каждый слой расходует память.</li>
-    <li><strong>Forced layout:</strong> чтение <code>offsetHeight</code> после записи стилей заставляет считать раскладку сразу. В цикле это даёт layout thrashing.</li>
-    <li><strong>Прокрутка:</strong> часто идёт на композиторе, но не-passive обработчик <code>touchstart</code> или <code>wheel</code> заставляет её ждать главный поток.</li>
-  </ul>
-  <pre>// Плохо: чтение и запись чередуются, раскладка считается на каждой итерации
-items.forEach((el) => { el.style.height = el.offsetHeight + 10 + "px"; });
-
-// Хорошо: сначала все чтения, потом все записи
-const heights = items.map((el) => el.offsetHeight);
-items.forEach((el, i) => { el.style.height = heights[i] + 10 + "px"; });</pre>
-
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr><th scope="row"><code>CSS transform / opacity</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
-
-
-
-  <section id="web-apis">
-    <h2>Web APIs: откуда берутся задачи</h2>
-    <p><strong>Web APIs</strong> — возможности, которые предоставляет браузер: таймеры, сеть, DOM, события, анимации и другое. Это не одна общая очередь и не обязательно отдельный поток.</p>
-    <p><strong>Вызвать API ≠ выполнить его callback.</strong> Вызов <code>setTimeout</code>, <code>fetch</code> или <code>requestAnimationFrame</code> происходит синхронно. А callback либо продолжение запускается позже — по правилам конкретного API.</p>
-    <pre>JS → setTimeout(callback, 0) → браузер отслеживает таймер
-   → задача (task / macro) → callback в Call Stack
-
-JS → Promise.resolve().then(callback)
-   → microtask queue → callback после текущего JS
-
-JS → requestAnimationFrame(callback)
-   → список callback для следующего кадра → callback перед paint
-
-JS → fetch(url) → браузер выполняет сетевую операцию
-   → обрабатывается ответ → Promise выполняется
-   → .then(callback) как microtask</pre>
-    <p><strong>Нет единой «очереди Web APIs».</strong> У браузера несколько источников и очередей задач; Event Loop выбирает подходящую задачу, обрабатывает microtasks и может обновить изображение. Поэтому две macro из разных источников не всегда имеют гарантированный порядок.</p>
-    <p><strong>Один и тот же callback</strong> может выполняться по-разному. <code>button.addEventListener("click", fn)</code> регистрирует функцию. Реальный пользовательский клик обрабатывается асинхронно как task, а <code>button.click()</code> или <code>dispatchEvent()</code> из JS вызывают обработчики синхронно в текущем стеке.</p>
-    <p><strong>Сервер — отдельная среда.</strong> У Node.js свой Event Loop с фазами и API <code>process.nextTick</code>, <code>setImmediate</code>. Здесь разбираем браузер; Node.js есть ниже в разделе Fullstack.</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr><th scope="row"><code>fetch</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.then / await</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
 
   <section id="types">
     <h2>Что macro, что micro и почему</h2>
@@ -693,29 +326,226 @@ JS → fetch(url) → браузер выполняет сетевую опер�
 <pre>requestAnimationFrame(() =&gt; {
   console.log("rAF");              // callback фазы кадра
   queueMicrotask(() =&gt; console.log("micro")); // микротаска
-});</pre>
+});</pre></section>
 
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
+  <section id="during">
+    <h2>Попадут ли задачи, созданные на лету, в этот же цикл?</h2>
+    <p class="answer">Micro да, до перерисовки. Macro нет, она ждёт следующего витка.</p>
+    <p><strong>Новая macro</strong>, например <code>setTimeout</code> из задачи, встаёт в очередь macro. Перед ней браузер может нарисовать кадр.</p>
+    <p><strong>Новая micro</strong> выполнится на этом же шаге. Создать её может и macro, и другая micro.</p>
+    <p>Из macro: задача ставит microtask в очередь, а выполнится та, когда macro закончится и стек опустеет.</p>
+    <p>Из micro: пока идёт одна microtask, она может поставить ещё одну. Новая попадает в ту же очередь и выполнится на этом же шаге, до кадра и до следующей macro.</p>
+    <p><strong>Поэтому мелкие micro могут затормозить кадр.</strong> Даже если они укладываются в кадр, одна из них может создать тяжёлую micro или длинную цепочку micro. Всё это выполнится до перерисовки: кадр задержится, а если работа займёт больше 16,6 мс, следующие кадры будут пропущены.</p>
+    <pre>setTimeout(() => {                 // macro
+  queueMicrotask(() => {           // micro 1: поставила macro
+    queueMicrotask(() => {         // micro 2: поставила micro 1
+      console.log("micro 2");
+    });
+    console.log("micro 1");
+  });
+  console.log("macro");
+});
+// Вывод: macro, micro 1, micro 2</pre>
+    <p class="gap">Шаг 2 заканчивается, только когда очередь microtasks пуста. Похожий сценарий показан в панели «Стек и очереди».</p></section>
+
+  <section id="raf">
+    <h2>Как часто вызывается rAF?</h2>
+    <p class="answer">Раз в кадр: при 60 Гц каждые 16,67 мс (1000 ÷ 60).</p>
+    <p>Частоту задаёт экран: при 120 Гц будет 8,33 мс. Это не таймер, поэтому если главный поток занят, кадр пропускается и следующий вызов приходит позже.</p>
+    <p>Важная деталь: rAF срабатывает один раз. Чтобы анимация продолжалась, колбэк сам снова вызывает <code>requestAnimationFrame</code>. Несколько колбэков, поставленных до кадра, выполнятся все в этом кадре.</p></section>
+
+  <section id="between">
+    <h2>Успевает ли пройти несколько циклов между кадрами?</h2>
+    <p class="answer">Да, если задачи короткие, витков может быть много. А может не быть ни одного полного кадра, если задача длинная.</p>
+    <div class="scroll"><div class="timeline" id="timeline" role="img" aria-label="Две временные шкалы на 50 миллисекунд. На первой короткие задачи и отрисовка каждые 16,67 мс. На второй задача длиной 40 мс, из-за которой два кадра пропущены."></div></div>
+    <div class="legend">
+      <span><i style="background:var(--macro)"></i>macrotask</span>
+      <span><i style="background:var(--micro)"></i>microtasks</span>
+      <span><i style="background:var(--frame)"></i>rAF и отрисовка</span>
+      <span>Пунктир: момент кадра</span>
+    </div>
+    <p class="gap">Шкалы показывают схему, а длительности условные. Ниже настоящий замер: страница гоняет короткие задачи через <code>MessageChannel</code> и считает, сколько их проходит между кадрами в твоём браузере.</p>
+    <button id="measure" type="button">Замерить ещё раз</button>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><strong id="s-frame">…</strong><small>мс между вызовами rAF</small></div>
+      <div class="stat"><strong id="s-tasks">…</strong><small>macrotasks в среднем между кадрами</small></div>
+      <div class="stat"><strong id="s-hz">…</strong><small>Гц, частота кадров по замеру</small></div>
+    </div></section>
+
+  <section id="blocking">
+    <h2>Что блокирует перерисовку?</h2>
+    <p class="answer">И macro, и micro. Браузер рисует, только когда главный поток свободен.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Что выполняется</th><th>Заблокирует на 40 мс?</th><th>Почему</th></tr></thead>
       <tbody>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>queueMicrotask</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>MutationObserver</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>IntersectionObserver</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>ResizeObserver</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.postTask</code></span></th><td class="compat-yes">✓ 94+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.yield</code></span></th><td class="compat-yes">✓ 129+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-idle"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg><code>requestIdleCallback</code></span></th><td class="compat-yes">✓ 47+</td><td class="compat-yes">✓ 55+</td><td class="compat-yes">✓</td><td class="compat-flag">Флаг</td><td class="compat-flag">Флаг</td><td class="compat-yes">✓</td></tr>
+        <tr><td>Одна macro на 40 мс</td><td><strong>Да</strong></td><td>задачу нельзя прервать посередине</td></tr>
+        <tr><td>Одна micro на 40 мс</td><td><strong>Да</strong></td><td>по той же причине</td></tr>
+        <tr><td>Много мелких micro, в сумме 40 мс</td><td><strong>Да</strong></td><td>очередь выполняется целиком, кадр не вклинится</td></tr>
+        <tr><td>Много мелких macro, в сумме 40 мс</td><td><strong>Обычно нет</strong></td><td>между ними браузер может нарисовать кадр</td></tr>
       </tbody>
     </table></div>
-        <p class="compat-note">Safari: requestIdleCallback доступен только экспериментально с флагом; по умолчанию не рассчитывай на него.</p>
-<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+    <pre class="gap">Мелкие micro:  [m][m][m][m][m][m][m][m] ... 40 мс подряд → кадр
+Мелкие macro:  [M][M][M] кадр [M][M][M] кадр [M][M]</pre>
+    <p class="gap">Работа занимает те же 40 мс, но мелкие macro дают браузеру рисовать между ними.</p>
+    <p>Поэтому разбивка тяжёлой работы на microtasks не помогает:</p>
+    <pre>// Не помогает: кадр не вклинится, пока очередь не опустеет
+for (const item of items) {
+  queueMicrotask(() => process(item));
+}
+
+// Помогает: каждый setTimeout это отдельная macrotask
+for (const item of items) {
+  setTimeout(() => process(item));
+}</pre>
+    <p class="gap">С <code>await</code> то же самое: если промис уже выполнен, код после него продолжится как microtask, и паузы для отрисовки не будет.</p></section>
+
+  <section id="frame-time">
+    <h2>Когда браузер рисует кадр</h2>
+    <p class="answer">После каждого витка браузер проверяет, настало ли время кадра. Текущую задачу он никогда не прерывает.</p>
+    <h3>Правила</h3>
+    <ul>
+      <li><strong>Кадр:</strong> при 60 Гц его момент наступает каждые 16,67 мс по сигналу экрана.</li>
+      <li><strong>Micro:</strong> идут вне очереди, все сразу после текущей macro.</li>
+      <li><strong>Macro:</strong> строго по одной за виток.</li>
+      <li><strong>Время кадра не настало:</strong> браузер может взять следующую macro.</li>
+      <li><strong>Время кадра настало во время задачи:</strong> браузер ждёт конца macro и всех micro. Лимита на ожидание нет.</li>
+      <li><strong>Менять на экране нечего:</strong> перерисовки может не быть.</li>
+    </ul>
+    <h3>Пример: кадр опоздал</h3>
+    <pre>0 мс      macro 1
+10 мс     macro 2: время кадра не настало, значит можно
+16,67 мс  момент кадра: macro 2 идёт, браузер ждёт
+20 мс     macro 2 и micro закончились → перерисовка, опоздание 3,33 мс
+22 мс     перерисовка закончилась (допустим, заняла 2 мс)
+33,33 мс  следующий момент кадра</pre>
+    <p class="gap"><strong>Опоздание не сдвигает следующие кадры.</strong> Следующий момент остаётся в 33,33 мс, поэтому на работу до него есть не 16,67 мс, а около 11 мс.</p>
+    <h3>Пример: кадр пропущен</h3>
+    <pre>0 мс      старт задачи на 40 мс
+16,67 мс  момент кадра, задача идёт
+33,33 мс  ещё один момент кадра, задача идёт
+40 мс     задача закончилась → браузер готовит один кадр
+50 мс     ближайший сигнал экрана</pre>
+    <p class="gap">Пропуск не решается заранее: за время задачи прошло несколько моментов кадра, а нарисовать можно только один, с актуальным состоянием. Браузер может подготовить кадр сразу после задачи или ближе к сигналу экрана, это зависит от браузера.</p>
+    <h3>Почему куски macro не блокируют кадр</h3>
+    <p>За один виток выполняется одна macro, поэтому новая macro из <code>postMessage</code> ждёт следующего витка, а перед ним браузер проверяет время кадра.</p>
+    <pre>Виток 1: кусок macro 5 мс → все micro → кадр, если пора
+Виток 2: кусок macro 5 мс → все micro → кадр, если пора</pre>
+    <p class="gap"><strong>Ограничение:</strong> лимит 5 мс считает только код внутри куска. Micro выполнятся уже после него, и тяжёлые micro всё равно задержат кадр:</p>
+    <pre>[кусок macro 5 мс] [micro 30 мс] → кадр задержался</pre>
+    <p class="gap">Разбивка работает, только если короткие и macro, и все micro после неё.</p></section>
+
+  <section id="render-stages">
+    <h2>Стадии браузерного Render (отрисовки)</h2>
+    <p class="answer">После JS и microtasks, когда браузер решает обновить кадр, он выполняет callbacks <code>requestAnimationFrame</code> и необходимые этапы рендеринга.</p>
+    <h3>От HTML/CSS до изображения</h3>
+    <pre>HTML ───────────────→ DOM ───────────────┐
+                                         ├─→ Render tree / Layout tree
+CSS ────────────────→ CSSOM ─────────────┘
+                     ↑
+JavaScript ─── изменяет DOM, классы, inline-стили и CSS-правила
+
+[Обновление кадра, если необходимо]
+requestAnimationFrame → Style calculation → Layout → Paint → Compositing</pre>
+    <p><strong>DOM</strong> — дерево HTML-элементов. <strong>CSSOM</strong> — представление разобранных CSS-правил. Они строятся из HTML и CSS <strong>независимо</strong>: стрелка DOM → CSSOM на картинке вводит в заблуждение.</p>
+    <p><strong>Render tree</strong> — упрощённое учебное название структуры видимых объектов для отображения: на неё влияют и DOM, и CSSOM. Элементы с <code>display: none</code> обычно не создают соответствующих объектов раскладки. В реальных движках структура сложнее, чем одно дерево.</p>
+    <p><strong>JavaScript</strong> может изменить DOM или стили синхронно, но это <em>не означает немедленный Paint</em>: браузер обычно группирует изменения и обновляет кадр позже. Исключение: чтение геометрии вроде <code>offsetWidth</code> после изменения стилей может принудительно запустить Style/Layout прямо во время JS (forced synchronous layout).</p>
+    <p><strong>Event Loop</strong> решает, когда дать браузеру обновить изображение; сами стадии рендеринга — не macrotasks и не microtasks.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Стадия</th><th>Что делает простыми словами</th><th>Пример изменения</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1. Style calculation</strong><br>Recalculate Style</td><td>Определяет, какие CSS-правила применяются и какие итоговые стили у элементов.</td><td>Изменился класс, цвет или CSS-правило.</td></tr>
+        <tr><td><strong>2. Layout</strong><br>Reflow</td><td>Считает размеры и координаты элементов: кто где стоит и сколько места занимает.</td><td>Изменился <code>width</code>, <code>height</code>, <code>font-size</code>.</td></tr>
+        <tr><td><strong>3. Paint</strong></td><td>Готовит инструкции для отрисовки содержимого: текст, цвет, границы, тени; изображение растеризуется в пиксели.</td><td>Изменился <code>background-color</code> или <code>box-shadow</code>.</td></tr>
+        <tr><td><strong>4. Compositing</strong></td><td>Собирает отдельные нарисованные слои в итоговое изображение.</td><td>Анимация <code>transform</code> или <code>opacity</code> часто использует только compositing.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="gap"><strong>Важно:</strong> не каждый кадр проходит все четыре стадии заново. Если изменилась только позиция уже готового слоя через <code>transform</code>, браузер часто может обойтись без нового Layout и Paint. Если изменился <code>width</code>, обычно потребуются Style → Layout → Paint → Composite.</p>
+    <p><strong>Что блокирует:</strong> длинный JS или бесконечная очередь microtasks не дают главному потоку подготовить новый кадр. А CSS-анимации, исполняемые композитором, иногда продолжаются даже при занятом main thread.</p>
+    <p><strong>Для React:</strong> React Render — вычисление изменений компонентов, React Commit — запись в DOM, а эти четыре стадии — уже работа самого браузера с DOM/CSS.</p></section>
+
+  <section id="stale">
+    <h2>Отменяется ли кадр, если он уже не актуален?</h2>
+    <p class="answer">Отменять нечего: заранее кадр не считается.</p>
+    <p>Браузер считает кадр на шаге 3 и берёт DOM и стили такими, какие они в этот момент. Поэтому устаревшего кадра не бывает: рисуется последнее состояние.</p>
+    <p><strong>Если DOM менялся несколько раз между кадрами,</strong> на экран попадёт только итог. Промежуточные значения никто не увидит.</p>
+    <p><strong>Если кадр пропущен,</strong> он не встаёт в очередь и не догоняется. Следующий кадр просто покажет актуальное состояние, поэтому анимация выглядит как рывок.</p>
+    <p><strong>Если отрисовка уже началась,</strong> она не прерывается: это такая же работа в главном потоке, и новые задачи ждут её конца.</p>
+    <p>Колбэк rAF при пропуске кадра не теряется: он выполнится один раз перед следующей отрисовкой.</p></section>
+
+  <section id="long-render">
+    <h2>Может ли сама отрисовка идти дольше кадра?</h2>
+    <p class="answer">Да. Тогда следующий кадр пропускается, как и при длинной задаче.</p>
+    <p>Rendering в главном потоке (rAF, layout, paint) не прерывается. Пока он идёт, момент следующего кадра проходит впустую, а macro и micro ждут. Новая отрисовка не запустится поверх текущей: второй нет, пока не закончится первая.</p>
+    <pre>0 мс      отрисовка началась (длится 25 мс)
+16,67 мс  момент кадра пропущен
+25 мс     отрисовка закончилась, идут задачи
+33,33 мс  следующий кадр</pre>
+    <p class="gap"><strong>Важные данные, пришедшие во время отрисовки, не теряются.</strong> Событие ждёт в очереди, затем записывает их в DOM, и ближайший кадр их покажет. Пропуск кадра означает задержку, а не потерю. Не увидеть можно только промежуточное значение, если до кадра его перезаписали новым. Этот сценарий есть в конце анимации.</p>
+    <p>Обычно это тяжёлые layout и paint: огромный DOM, чтение размеров вперемешку с записью в rAF, дорогие тени и фильтры.</p></section>
+
+<section id="threads">
+  <h2>Потоки и CSS-анимации</h2>
+  <p class="answer">JS и подготовка кадра идут в главном потоке, а готовую картинку собирает отдельный поток-композитор.</p>
+  <h3>Простыми словами</h3>
+  <p>Анимация <code>transform</code> или <code>opacity</code> двигает уже нарисованный слой, как лист бумаги на столе. Анимация <code>width</code> каждый кадр заново вычисляет раскладку страницы. Первой главный поток обычно не нужен, второй нужен всегда.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Этап</th><th>Где выполняется</th></tr></thead>
+    <tbody>
+      <tr><td>JavaScript, rAF</td><td>главный поток</td></tr>
+      <tr><td>Style, Layout, Paint</td><td>главный поток</td></tr>
+      <tr><td>Растеризация</td><td>потоки растеризации, GPU</td></tr>
+      <tr><td>Composite</td><td>поток композитора, GPU</td></tr>
+    </tbody>
+  </table></div>
+  <h3>На практике</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Анимация</th><th>Что пересчитывается</th><th>Если главный поток занят</th></tr></thead>
+    <tbody>
+      <tr><td><code>width</code>, <code>height</code>, <code>top</code>, <code>left</code></td><td>Layout и Paint</td><td>замирает или дёргается</td></tr>
+      <tr><td><code>background-color</code>, <code>box-shadow</code></td><td>обычно Paint</td><td>замирает или дёргается</td></tr>
+      <tr><td><code>transform</code>, <code>opacity</code></td><td>обычно только Composite</td><td>обычно продолжается</td></tr>
+      <tr><td>JS через <code>requestAnimationFrame</code></td><td>зависит от кода</td><td>замирает</td></tr>
+    </tbody>
+  </table></div>
+  <pre class="gap">.bad  { transition: left 0.3s; }        /* Layout каждый кадр */
+.good { transition: transform 0.3s; }   /* только композитор */</pre>
+  <p class="gap"><strong>Важно:</strong> крутящийся CSS-спиннер не доказывает, что интерфейс отзывчив. Спиннер может идти на композиторе, пока клики ждут в очереди.</p>
+  <h3>Что под капотом</h3>
+  <ul>
+    <li><strong>Слои:</strong> браузер сам решает, что вынести на отдельный слой. <code>will-change: transform</code> подсказывает это заранее, но каждый слой расходует память.</li>
+    <li><strong>Forced layout:</strong> чтение <code>offsetHeight</code> после записи стилей заставляет считать раскладку сразу. В цикле это даёт layout thrashing.</li>
+    <li><strong>Прокрутка:</strong> часто идёт на композиторе, но не-passive обработчик <code>touchstart</code> или <code>wheel</code> заставляет её ждать главный поток.</li>
+  </ul>
+  <pre>// Плохо: чтение и запись чередуются, раскладка считается на каждой итерации
+items.forEach((el) => { el.style.height = el.offsetHeight + 10 + "px"; });
+
+// Хорошо: сначала все чтения, потом все записи
+const heights = items.map((el) => el.offsetHeight);
+items.forEach((el, i) => { el.style.height = heights[i] + 10 + "px"; });</pre></section>
+
+
+
+  <section id="web-apis">
+    <h2>Web APIs: откуда берутся задачи</h2>
+    <p><strong>Web APIs</strong> — возможности, которые предоставляет браузер: таймеры, сеть, DOM, события, анимации и другое. Это не одна общая очередь и не обязательно отдельный поток.</p>
+    <p><strong>Вызвать API ≠ выполнить его callback.</strong> Вызов <code>setTimeout</code>, <code>fetch</code> или <code>requestAnimationFrame</code> происходит синхронно. А callback либо продолжение запускается позже — по правилам конкретного API.</p>
+    <pre>JS → setTimeout(callback, 0) → браузер отслеживает таймер
+   → задача (task / macro) → callback в Call Stack
+
+JS → Promise.resolve().then(callback)
+   → microtask queue → callback после текущего JS
+
+JS → requestAnimationFrame(callback)
+   → список callback для следующего кадра → callback перед paint
+
+JS → fetch(url) → браузер выполняет сетевую операцию
+   → обрабатывается ответ → Promise выполняется
+   → .then(callback) как microtask</pre>
+    <p><strong>Нет единой «очереди Web APIs».</strong> У браузера несколько источников и очередей задач; Event Loop выбирает подходящую задачу, обрабатывает microtasks и может обновить изображение. Поэтому две macro из разных источников не всегда имеют гарантированный порядок.</p>
+    <p><strong>Один и тот же callback</strong> может выполняться по-разному. <code>button.addEventListener("click", fn)</code> регистрирует функцию. Реальный пользовательский клик обрабатывается асинхронно как task, а <code>button.click()</code> или <code>dispatchEvent()</code> из JS вызывают обработчики синхронно в текущем стеке.</p>
+    <p><strong>Сервер — отдельная среда.</strong> У Node.js свой Event Loop с фазами и API <code>process.nextTick</code>, <code>setImmediate</code>. Здесь разбираем браузер; Node.js есть ниже в разделе Fullstack.</p></section>
+
+  
 
   <section id="source">
     <h2>Что является macrotask: клик или колбэк?</h2>
@@ -727,20 +557,7 @@ JS → fetch(url) → браузер выполняет сетевую опер�
       <li><code>input</code>: пользователь ввёл текст → задача → колбэк.</li>
       <li><code>setTimeout</code>: истёк таймер → задача → колбэк.</li>
     </ul>
-    <p>Исключение: <code>button.click()</code> из кода не создаёт задачу, колбэки вызываются сразу, в текущем стеке.</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr><th scope="row"><code>addEventListener</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+    <p>Исключение: <code>button.click()</code> из кода не создаёт задачу, колбэки вызываются сразу, в текущем стеке.</p></section>
 
   <section id="apis">
     <h2>Как работают эти API</h2>
@@ -935,26 +752,7 @@ el.append(b);   // один вызов, в списке 2 записи</pre>
   processChunk(chunk);
   await scheduler.yield();   // уступить браузеру и продолжить
 }</pre>
-<p class="gap">Перед использованием проверяй поддержку: <code>"scheduler" in window &amp;&amp; "yield" in scheduler</code>. Задачи длиннее 50 мс считаются long task и ухудшают метрику INP.</p>
-
-
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>MessageChannel</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>window.postMessage</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>queueMicrotask</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>MutationObserver</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.yield</code></span></th><td class="compat-yes">✓ 129+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-        <p class="compat-note">Для scheduler.yield проверяй поддержку: Safari не реализует этот API.</p>
-<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+<p class="gap">Перед использованием проверяй поддержку: <code>"scheduler" in window &amp;&amp; "yield" in scheduler</code>. Задачи длиннее 50 мс считаются long task и ухудшают метрику INP.</p></section>
 
   <section id="order">
     <h2>Проверь порядок сама</h2>
@@ -965,21 +763,7 @@ Promise.resolve().then(() => console.log("micro: then"));
 console.log("2 синхронно");</pre>
     <p class="gap"><button id="run" type="button">Запустить</button></p>
     <pre class="output" id="output" aria-live="polite">Нажми «Запустить», код выполнится здесь по-настоящему.</pre>
-    <p class="gap">Первые три строки идут всегда в порядке: <code>1</code>, <code>2</code>, <code>micro</code>. А вот <code>setTimeout</code> и <code>rAF</code> могут поменяться местами: всё зависит от того, сколько осталось до кадра.</p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.then / await</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+    <p class="gap">Первые три строки идут всегда в порядке: <code>1</code>, <code>2</code>, <code>micro</code>. А вот <code>setTimeout</code> и <code>rAF</code> могут поменяться местами: всё зависит от того, сколько осталось до кадра.</p></section>
 
   <div class="part">React: как работает внутри</div>
 
@@ -1026,24 +810,7 @@ console.log("2 синхронно");</pre>
     <tr><td><code>MessageChannel</code></td><td>подходит: macrotask без этой задержки</td></tr>
   </tbody>
 </table></div>
-<p class="gap">Параллельности здесь нет: всё идёт в одном потоке, задачи чередуются. React сам уступает управление, это кооперативная многозадачность.</p>
-
-
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>MessageChannel</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.postTask</code></span></th><td class="compat-yes">✓ 94+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.yield</code></span></th><td class="compat-yes">✓ 129+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-idle"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg><code>requestIdleCallback</code></span></th><td class="compat-yes">✓ 47+</td><td class="compat-yes">✓ 55+</td><td class="compat-yes">✓</td><td class="compat-flag">Флаг</td><td class="compat-flag">Флаг</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-        <p class="compat-note">React Scheduler использует собственные механизмы; поддержку React не следует путать с наличием нативного scheduler.postTask. Safari: requestIdleCallback только с экспериментальным флагом.</p>
-<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+<p class="gap">Параллельности здесь нет: всё идёт в одном потоке, задачи чередуются. React сам уступает управление, это кооперативная многозадачность.</p></section>
 
   <section id="phases">
     <h2>Фазы Render и Commit</h2>
@@ -1284,21 +1051,7 @@ export function FormTree({ open }: { open: boolean }) {
     <li><strong>React Profiler:</strong> убедись, что форма действительно рендерится после видимого контента и не вызывает лишние обновления.</li>
     <li><strong>Проверь ранний клик, слабый телефон и медленную сеть:</strong> fallback обязан работать. Замеряй INP/LCP до и после.</li>
   </ol>
-  <p><strong>Официальные источники:</strong> <a href="https://react.dev/reference/react/Activity">React Activity</a>, <a href="https://react.dev/reference/react/startTransition">React startTransition</a>, <a href="https://react.dev/reference/react/Suspense">React Suspense</a>, <a href="https://nextjs.org/docs/app/guides/lazy-loading">Next.js Lazy Loading</a>.</p>
-
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-idle"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg><code>requestIdleCallback</code></span></th><td class="compat-yes">✓ 47+</td><td class="compat-yes">✓ 55+</td><td class="compat-yes">✓</td><td class="compat-flag">Флаг</td><td class="compat-flag">Флаг</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-        <p class="compat-note">React и Next.js — библиотеки, а не Web API. Таблица отражает только используемые ими браузерные методы. Safari: requestIdleCallback экспериментален.</p>
-<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+  <p><strong>Официальные источники:</strong> <a href="https://react.dev/reference/react/Activity">React Activity</a>, <a href="https://react.dev/reference/react/startTransition">React startTransition</a>, <a href="https://react.dev/reference/react/Suspense">React Suspense</a>, <a href="https://nextjs.org/docs/app/guides/lazy-loading">Next.js Lazy Loading</a>.</p></section>
 
 <section id="hydration">
     <h2>Hydration</h2>
@@ -1502,22 +1255,7 @@ const ok = results.filter((r) => r.status === "fulfilled").map((r) => r.value);<
 </ul>
 <pre>const controller = new AbortController();
 fetch(url, { signal: controller.signal });
-controller.abort();</pre>
-
-
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.all / race</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.allSettled</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.any / finally</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+controller.abort();</pre></section>
 
   <section id="websocket">
     <h2>WebSocket</h2>
@@ -1565,20 +1303,7 @@ socket.onmessage = (event) => console.log(event.data);</pre>
     const delay = Math.min(1000 * 2 ** attempt, 30000);
     setTimeout(() => connect(attempt + 1), delay);
   };
-}</pre>
-
-
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>WebSocket</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+}</pre></section>
 
   <section id="file-system-access">
     <h2>File System Access API</h2>
@@ -1645,26 +1370,7 @@ button.addEventListener("click", () =&gt; {
 });</pre>
     <p><strong>Что выбрать:</strong> для обычного upload используй <code>&lt;input type="file"&gt;</code> — он проще и поддерживается почти везде. Для редактора файлов или локального файлового менеджера File System Access API полезнее, но нужен fallback.</p>
     <p><strong>Связь с Event Loop:</strong> <code>showOpenFilePicker()</code> и <code>getFile()</code> возвращают Promises. После <code>await</code> продолжение твоей функции идёт через microtask. Сам диалог выбора файла не блокирует JS-поток.</p>
-    <p><strong>Документация:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/showOpenFilePicker" target="_blank" rel="noopener noreferrer">MDN: showOpenFilePicker</a> · <a href="https://developer.chrome.com/docs/capabilities/web-apis/file-system-access" target="_blank" rel="noopener noreferrer">Chrome Developers: File System Access</a> · <a href="https://caniuse.com/mdn-api_window_showopenfilepicker" target="_blank" rel="noopener noreferrer">Browser support</a></p>
-  
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr><th scope="row"><code>showOpenFilePicker</code></th><td class="compat-yes">✓ 86+</td><td class="compat-no">✕</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓ 132+</td></tr>
-        <tr><th scope="row"><code>showSaveFilePicker</code></th><td class="compat-yes">✓ 86+</td><td class="compat-no">✕</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓ 132+</td></tr>
-        <tr><th scope="row"><code>showDirectoryPicker</code></th><td class="compat-yes">✓ 86+</td><td class="compat-no">✕</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓ 132+</td></tr>
-        <tr><th scope="row"><code>FileSystemFileHandle.getFile</code></th><td class="compat-yes">✓ 86+</td><td class="compat-yes">✓ 111+</td><td class="compat-yes">✓</td><td class="compat-yes">✓ 15.2+</td><td class="compat-yes">✓ 15.2+</td><td class="compat-yes">✓ 109+</td></tr>
-        <tr><th scope="row"><code>FileSystemFileHandle.createWritable</code></th><td class="compat-yes">✓ 86+</td><td class="compat-yes">✓ 111+</td><td class="compat-yes">✓</td><td class="compat-yes">✓ 26+</td><td class="compat-yes">✓ 26+</td><td class="compat-yes">✓ 109+</td></tr>
-        <tr><th scope="row"><code>queryPermission / requestPermission</code></th><td class="compat-yes">✓ 86+</td><td class="compat-no">✕</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓ 109+</td></tr>
-        <tr><th scope="row"><code>input[type=file]</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-        <p class="compat-note">Важно: методы getFile/createWritable доступны также для OPFS — внутреннего файлового хранилища сайта. Это не означает, что Firefox или Safari умеют открывать произвольный файл через showOpenFilePicker. Android — Chrome Android, другие браузеры могут отличаться.</p>
-<p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+    <p><strong>Документация:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/showOpenFilePicker" target="_blank" rel="noopener noreferrer">MDN: showOpenFilePicker</a> · <a href="https://developer.chrome.com/docs/capabilities/web-apis/file-system-access" target="_blank" rel="noopener noreferrer">Chrome Developers: File System Access</a> · <a href="https://caniuse.com/mdn-api_window_showopenfilepicker" target="_blank" rel="noopener noreferrer">Browser support</a></p></section>
 
   <section id="throttle-debounce">
     <h2>Throttle и debounce</h2>
@@ -1721,20 +1427,7 @@ const onChange = useMemo(() => debounce(search, 300), [search]);</pre>
       func(...args);
     });
   };
-}</pre>
-
-
-  <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
-  <div class="browser-compat" aria-label="Кроссбраузерность">
-    <h3>Кроссбраузерность</h3>
-    <div class="tablewrap"><table class="compat-table">
-      <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
-      <tbody>
-        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
-      </tbody>
-    </table></div>
-    <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
-  </div></section>
+}</pre></section>
 
   <section id="rotate">
     <h2>Задача: поворот массива без копирования</h2>
