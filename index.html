@@ -248,6 +248,13 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 .track .mt.numbered { display:flex; align-items:center; justify-content:center; color:var(--on); font:600 11px/1 var(--mono); }
 .scale b { white-space:nowrap; }
 @media (max-width:600px) { .timeline-explain { font-size:13px; } .row-title { font-size:14px; } .track .mt.numbered { font-size:10px; } }
+
+/* Put proportional durations directly inside the timeline bars. */
+.track .mt.numbered, .track .ft.labeled {
+  display:flex; align-items:center; justify-content:center;
+  color:var(--on); font:600 10px/1 var(--mono);
+  white-space:nowrap; overflow:hidden;
+}
 </style>
 </head>
 <body>
@@ -2654,14 +2661,17 @@ const scale = `<div class="scale"><b style="left:0">0</b><b style="left:${pct(16
 
 let shortRow = "";
 for (const start of [0, 16.67, 33.33]) {
-  for (const [i, offset] of [0.8, 4.4, 8, 11.4].entries()) shortRow += seg("mt numbered", start + offset, 2, String(i + 1)) + seg("ut", start + offset + 2, 0.7);
-  if (start < 33) shortRow += seg("ft", start + 14.4, 2.2);
+  // 4 x (3 ms macrotask + 0.5 ms microtasks) = 14 ms; render for 2 ms before the next frame.
+  for (const offset of [0.2, 3.7, 7.2, 10.7]) {
+    shortRow += seg("mt numbered", start + offset, 3, "3 мс");
+    shortRow += seg("ut", start + offset + 3, 0.5);
+  }
+  shortRow += seg("ft labeled", start + 14.5, 2, "2 мс");
 }
-shortRow += seg("ft", 47.7, 2.2);
 
 timeline.innerHTML = `
-  <div><div class="row-title">4 витка → 1 Rendering (повторяется на каждом кадре)</div><p class="timeline-explain">На схеме каждый виток: <strong>macrotask — 2 мс</strong>, затем <strong>microtasks — 0,7 мс</strong>. После четырёх витков — <strong>rAF и отрисовка — 2,2 мс</strong>. Длительности условные.</p><div class="track">${ticks}${shortRow}</div>${scale}</div>
-  <div><div class="row-title">Одна задача на 40 мс: кадры в 16,67 и 33,33 мс пропущены</div><div class="track">${ticks}${seg("mt long", 0.4, 39.6, "одна macrotask, 40 мс")}${seg("ut", 40, 0.8)}${seg("ft", 47.7, 2.2)}</div>${scale}</div>`;
+  <div><div class="row-title">4 витка → 1 Rendering (повторяется на каждом кадре)</div><p class="timeline-explain">Один виток: <strong>macrotask — 3 мс</strong> + <strong>microtasks — 0,5 мс</strong>. После четырёх витков — <strong>rAF и Rendering — 2 мс</strong>. Длительности условные.</p><div class="track">${ticks}${shortRow}</div>${scale}</div>
+  <div><div class="row-title">Одна задача на 40 мс: кадры в 16,67 и 33,33 мс пропущены</div><div class="track">${ticks}${seg("mt long", 0, 40, "одна macrotask, 40 мс")}${seg("ut", 40, 0.5)}${seg("ft labeled", 47.8, 2, "2 мс")}</div>${scale}</div>`;
 
 document.getElementById("run").addEventListener("click", () => {
   const output = document.getElementById("output");
