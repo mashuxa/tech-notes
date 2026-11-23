@@ -281,7 +281,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
     <ol class="loop">
       <li>Взять <span class="m">одну macrotask</span> и выполнить до конца.</li>
       <li>Выполнить <span class="u">все microtasks</span>, включая те, что появились по ходу.</li>
-      <li><strong>Только если подошло время кадра:</strong><span class="f" style="display:block; margin-top:4px">rAF callback → Style calculation → Layout → Paint → Compositing.</span></li>
+      <li><strong>Только если подошло время кадра:</strong><span class="f" style="display:block; margin-top:4px">rAF → Style calculation → Layout → Paint → Compositing.</span></li>
     </ol>
     <p class="gap">* Цикл идёт по кругу: 1 → 2 → 3 → 1 …</p>
     <div class="note gap">
