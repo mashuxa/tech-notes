@@ -318,8 +318,19 @@ for (const item of items) {
   <section id="render-stages">
     <h2>Стадии браузерного Render (отрисовки)</h2>
     <p class="answer">После JS и microtasks, когда браузер решает обновить кадр, он выполняет callbacks <code>requestAnimationFrame</code> и необходимые этапы рендеринга.</p>
-    <pre>JS (task) → microtasks → [если нужен кадр]
+    <h3>От HTML/CSS до изображения</h3>
+    <pre>HTML ───────────────→ DOM ───────────────┐
+                                         ├─→ Render tree / Layout tree
+CSS ────────────────→ CSSOM ─────────────┘
+                     ↑
+JavaScript ─── изменяет DOM, классы, inline-стили и CSS-правила
+
+[Обновление кадра, если необходимо]
 requestAnimationFrame → Style calculation → Layout → Paint → Compositing</pre>
+    <p><strong>DOM</strong> — дерево HTML-элементов. <strong>CSSOM</strong> — представление разобранных CSS-правил. Они строятся из HTML и CSS <strong>независимо</strong>: стрелка DOM → CSSOM на картинке вводит в заблуждение.</p>
+    <p><strong>Render tree</strong> — упрощённое учебное название структуры видимых объектов для отображения: на неё влияют и DOM, и CSSOM. Элементы с <code>display: none</code> обычно не создают соответствующих объектов раскладки. В реальных движках структура сложнее, чем одно дерево.</p>
+    <p><strong>JavaScript</strong> может изменить DOM или стили синхронно, но это <em>не означает немедленный Paint</em>: браузер обычно группирует изменения и обновляет кадр позже. Исключение: чтение геометрии вроде <code>offsetWidth</code> после изменения стилей может принудительно запустить Style/Layout прямо во время JS (forced synchronous layout).</p>
+    <p><strong>Event Loop</strong> решает, когда дать браузеру обновить изображение; сами стадии рендеринга — не macrotasks и не microtasks.</p>
     <div class="tablewrap"><table>
       <thead><tr><th>Стадия</th><th>Что делает простыми словами</th><th>Пример изменения</th></tr></thead>
       <tbody>
