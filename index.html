@@ -221,6 +221,27 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 .doc-pager { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:18px; border-top:1px solid var(--line); }
 .doc-pager a { color:var(--macro); text-decoration:none; }
 .doc-pager a:hover { text-decoration:underline; }
+
+/* Keep the existing backgrounds; soften bright text in dark mode. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fg:#c1cbd8; --muted:#98a6b5;
+    --macro:#85a9d8; --micro:#d4a761; --frame:#d887af;
+  }
+}
+:root[data-theme="dark"] {
+  --fg:#c1cbd8; --muted:#98a6b5;
+  --macro:#85a9d8; --micro:#d4a761; --frame:#d887af;
+}
+/* Reserve a permanent left gutter for the navigation toggle when collapsed. */
+@media (min-width:1001px) {
+  .layout.nav-collapsed { padding-left:max(72px, env(safe-area-inset-left, 0px)); }
+}
+/* Make the stack visualization at least as tall as the adjacent explanation. */
+.intro-grid { align-items:stretch; }
+.intro-grid .viz { align-self:stretch; height:100%; box-sizing:border-box; display:flex; flex-direction:column; }
+.intro-grid .viz-controls { margin-top:auto; }
+@media (max-width:820px) { .intro-grid .viz { height:auto; } }
 </style>
 </head>
 <body>
