@@ -446,7 +446,6 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
     </div>
     <p class="idle-footnote"><svg class="task-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg> <strong>* Idle (свободное время):</strong> <code>requestIdleCallback(fn)</code> просит браузер выполнить несрочную работу на главном потоке при наличии свободного времени. Callback может долго ждать; параметр <code>timeout</code> позволяет вызвать его и без свободного времени. <code>deadline.timeRemaining()</code> оценивает доступный бюджет, <code>deadline.didTimeout</code> указывает на истёкший timeout. Длинная работа всё равно блокирует интерфейс; в Safari нужна проверка поддержки.</p>
 <h3>Почему rAF и ResizeObserver — не microtasks</h3>
-<p>Браузер вызывает <code>requestAnimationFrame</code> при обновлении кадра, а <code>ResizeObserver</code> — в процессе обновления рендеринга после Layout и перед Paint. Это <strong>не очередь microtasks</strong>. Но внутри их callbacks можно вызвать <code>queueMicrotask()</code> или завершить Promise: тогда созданное продолжение будет уже microtask.</p>
 <pre>requestAnimationFrame(() =&gt; {
   console.log("rAF");              // callback фазы кадра
   queueMicrotask(() =&gt; console.log("micro")); // микротаска
