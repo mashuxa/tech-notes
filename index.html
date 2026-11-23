@@ -21,8 +21,8 @@
   --bg: #11161d; --panel: #1a212b; --fg: #e8edf3; --muted: #9ba8b8; --line: #303a47;
   --macro: #6ea2f5; --micro: #eba93f; --frame: #f06aa8; --on: #11161d; color-scheme: dark }
 body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--sans); }
-.layout { max-width: 1340px; margin: auto; padding-block: 72px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: 190px minmax(0, 1fr) 310px; gap: 32px; align-items: start; }
-.viz { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); display: grid; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-size: 14px; line-height: 1.35; min-width: 0; }
+.layout { max-width: 1720px; margin: auto; padding-block: 72px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 28px; align-items: start; }
+.viz { position: static; align-self: start; display: grid; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-size: 14px; line-height: 1.35; min-width: 0; }
 .viz h2 { font-size: 16px; margin: 0; }
 .viz-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
 .viz-steps li { padding: 5px 8px; border-left: 3px solid var(--line); color: var(--muted); }
@@ -42,7 +42,7 @@ body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--sans); }
 .viz-controls button { flex: 1; padding: 8px; }
 .viz-controls #viz-next { background: transparent; color: var(--fg); border: 1px solid var(--line); }
 @media (max-width: 1180px) {
-  .layout { grid-template-columns: 160px minmax(0, 1fr) 250px; gap: 22px; }
+  .layout { grid-template-columns: 160px minmax(0, 1fr); gap: 22px; }
 }
 .menu { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); display: grid; gap: 2px; font-size: 14px; line-height: 1.35; }
 .menu a { color: var(--muted); text-decoration: none; padding: 8px 10px; border-left: 2px solid var(--line); }
@@ -54,19 +54,15 @@ section { scroll-margin-top: 72px; }
 .desktop-nav-toggle {
   position: fixed; z-index: 30;
   top: calc(env(safe-area-inset-top, 0px) + 12px);
-  left: max(12px, calc((100vw - 1340px) / 2 + 16px));
+  left: max(12px, calc((100vw - 1720px) / 2 + 16px));
   width: 44px; height: 44px; padding: 0;
   font-size: 20px; line-height: 1;
   background: var(--panel); color: var(--fg); border: 1px solid var(--line);
 }
 @media (min-width: 1001px) {
-  .layout.nav-collapsed { grid-template-columns: minmax(0, 1fr) 310px; }
+  .layout.nav-collapsed { grid-template-columns: minmax(0, 1fr); }
   .layout.nav-collapsed .menu { display: none; }
   .layout.nav-collapsed .wrap { grid-column: 1; grid-row: 1; }
-  .layout.nav-collapsed .viz { grid-column: 2; grid-row: 1; }
-}
-@media (min-width: 1001px) and (max-width: 1180px) {
-  .layout.nav-collapsed { grid-template-columns: minmax(0, 1fr) 250px; }
 }
 .menu-topic { font-weight: 700; font-size: 15px; color: var(--fg); padding: 12px 0 6px; }
 .menu-topic:first-child { padding-top: 0; }
@@ -75,24 +71,23 @@ section { scroll-margin-top: 72px; }
 .compare { font-family: var(--mono); font-size: 14px; }
 @media (max-width: 1000px) {
   .desktop-nav-toggle { display: none; }
-  .layout { grid-template-columns: minmax(0, 1fr) 220px; padding-top: 72px; }
+  .layout { grid-template-columns: minmax(0, 1fr); padding-top: 72px; }
   .wrap { grid-column: 1; grid-row: 1; }
-  .viz { grid-column: 2; grid-row: 1; }
   .burger { display: block; position: fixed; z-index: 30; top: calc(env(safe-area-inset-top, 0px) + 12px); left: calc(env(safe-area-inset-left, 0px) + 12px); width: 44px; padding: 0; font-size: 22px; line-height: 1; background: var(--panel); color: var(--fg); border: 1px solid var(--line); }
   .menu { position: fixed; z-index: 20; top: 0; bottom: 0; left: 0; max-height: none; width: min(280px, 85vw); align-content: start; overflow-y: auto; background: var(--bg); border-right: 1px solid var(--line); padding: calc(env(safe-area-inset-top, 0px) + 68px) 12px 24px calc(env(safe-area-inset-left, 0px) + 12px); transform: translateX(-100%); visibility: hidden; transition: transform 0.2s ease, visibility 0.2s; }
   .menu.open { transform: none; visibility: visible; }
   .menu a { min-height: 44px; display: flex; align-items: center; }
   .backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.45); }
 }
-@media (max-width: 620px) {
-  .layout { grid-template-columns: minmax(0, 1fr); }
-  .viz { grid-column: 1; grid-row: 1; position: static; }
-  .wrap { grid-column: 1; grid-row: 2; }
+@media (max-width: 760px) {
+  .intro-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @keyframes drop { from { transform: translateY(-46px); opacity: 0; } to { transform: none; opacity: 1; } }
 .chip.enter { animation: drop 0.7s ease-out; }
 @media (prefers-reduced-motion: reduce) { .menu { transition: none; } .chip.enter { animation: none; } }
 .wrap { display: grid; gap: 36px; min-width: 0; }
+.intro-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); gap: 24px; align-items: start; min-width: 0; }
+.intro-grid > * { min-width: 0; }
 .wrap > * { min-width: 0; }
 h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; text-wrap: balance; }
 h2 { font-size: 21px; line-height: 1.3; margin: 0 0 10px; text-wrap: balance; color: var(--macro); }
@@ -132,7 +127,7 @@ tr:last-child td { border-bottom: 0; } th { font-weight: 600; color: var(--muted
 .icon-sprite { position: absolute; overflow: hidden; }
 .task-icon { display: inline-block; vertical-align: -3px; width: 20px; height: 20px; flex: none; stroke: currentColor; stroke-width: 1.9; fill: none; stroke-linejoin: round; stroke-linecap: round; }
 .task-column h3 .task-icon { vertical-align: -4px; }
-.task-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+.task-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
 .task-column { min-width: 0; padding: 16px; border: 1px solid var(--line); border-top: 4px solid var(--task-color); background: color-mix(in srgb, var(--task-color) 7%, var(--panel)); border-radius: 8px; }
 .task-column h3 { margin: 0 0 8px; color: var(--task-color); font-size: 18px; }
 .task-column h3 small { font-weight: 400; font-size: 12px; }
@@ -144,9 +139,10 @@ tr:last-child td { border-bottom: 0; } th { font-weight: 600; color: var(--muted
 .task-macro { --task-color: var(--macro); }
 .task-micro { --task-color: var(--micro); }
 .task-render { --task-color: var(--frame); }
-.task-idle { --task-color: #0e9876; }
+.task-idle { --task-color: #0e9876; grid-column: 1 / -1; }
 .task-sync { --task-color: var(--muted); grid-column: 1 / -1; }
-@media (max-width: 720px) { .task-columns { grid-template-columns: minmax(0, 1fr); } .task-sync { grid-column: auto; } }
+@media (max-width: 1100px) { .task-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .task-columns { grid-template-columns: minmax(0, 1fr); } }
 .why { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 14px; }
 .why > div { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
 pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; line-height: 1.5; }
@@ -231,6 +227,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
     <div class="part" style="margin-top:22px">Event Loop</div>
   </header>
 
+  <div class="intro-grid">
   <section id="loop">
     <h2>Один виток цикла</h2>
 <p><strong>Простыми словами:</strong> браузер работает как один повар на кухне. Он готовит одно блюдо за раз, а между блюдами может выглянуть в зал. Заказы ждут в очередях, а цикл решает, что делать дальше.</p>
@@ -248,6 +245,24 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
       <p class="gap">При 60 Гц на кадр есть 16,6 мс: перерисовка пропустится, если macro, одна micro или все micro в сумме идут дольше. Например, работа на 40 мс пропустит 2 кадра, в 16,67 и 33,33 мс, а новый кадр появится на экране в 50 мс.</p>
     </div>
   </section>
+    <aside class="viz" aria-label="Анимация цикла">
+  <h2>Стек и очереди</h2>
+  <ol class="viz-steps" id="viz-steps">
+    <li>1. Одна macrotask</li>
+    <li>2. Все microtasks</li>
+    <li>3. Кадр, если пора</li>
+  </ol>
+  <div class="viz-label">* По кругу: 1 → 2 → 3 → 1 …</div>
+  <div><div class="viz-label">Call stack</div><div class="flask"><div class="stack" id="viz-stack"></div></div></div>
+  <div><div class="viz-label">Очередь macro</div><div class="queue" id="viz-macro"></div></div>
+  <div><div class="viz-label">Очередь micro</div><div class="queue" id="viz-micro"></div></div>
+  <p class="viz-note" id="viz-note" aria-live="off"></p>
+  <div class="viz-controls">
+    <button id="viz-play" type="button">Остановить</button>
+    <button id="viz-next" type="button">Шаг</button>
+  </div>
+</aside>
+  </div>
 
   <section id="types">
     <h2>Что macro, что micro и почему</h2>
@@ -291,14 +306,6 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
         </ul>
         <p class="task-note">Если главная нить занята JS или microtasks, подготовка нового кадра задерживается. Некоторые compositor-анимации при этом могут продолжаться.</p>
       </div>
-      <div class="task-column task-idle">
-        <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg> Idle <small>(свободное время)</small></h3>
-        <p class="task-explain">Браузер даёт выполнить несрочную работу, когда располагает временем.</p>
-        <ul>
-          <li><code>requestIdleCallback()</code> — callback в idle-период (или после заданного timeout)</li>
-        </ul>
-        <p class="task-note">Не гарантирует немедленного вызова; не подходит для анимации. В Safari поддержка ограничена.</p>
-      </div>
       <div class="task-column task-sync">
         <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-code"/></svg> Synchronous JS <small>(прямо сейчас)</small></h3>
         <p class="task-explain">Не отдельная очередь. Код выполняется в текущем Call Stack, пока не завершится.</p>
@@ -309,6 +316,14 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
           <li>Изменение DOM и чтение <code>offsetWidth</code> (может вызвать принудительный Layout)</li>
         </ul>
         <p class="task-note">Web Workers — не ещё одна категория на главном потоке: это отдельные потоки со своими Event Loop.</p>
+      </div>
+      <div class="task-column task-idle">
+        <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg> Idle <small>(свободное время)</small></h3>
+        <p class="task-explain">Браузер даёт выполнить несрочную работу, когда располагает временем.</p>
+        <ul>
+          <li><code>requestIdleCallback()</code> — callback в idle-период (или после заданного timeout)</li>
+        </ul>
+        <p class="task-note">Не гарантирует немедленного вызова; не подходит для анимации. В Safari поддержка ограничена.</p>
       </div>
     </div>
     <p class="gap"><strong>Запомнить:</strong> task → все microtasks → возможный Rendering → следующая task. Idle выполняется, когда браузер выделяет свободное время. Это упрощённая модель; у браузера несколько источников задач, а не одна строго упорядоченная macro-очередь.</p>
@@ -2169,23 +2184,6 @@ validators[type](value);</pre>
     <p>Сначала восстанови работу: откат, флаг, масштабирование. Сопоставь время с деплоями и изменениями, посмотри метрики, логи и трейсы, чтобы сузить проблему, а не гадать. После этого проведи разбор без поиска виноватых с конкретными действиями, чтобы проблема не повторилась.</p>
   </section>
 </div>
-<aside class="viz" aria-label="Анимация цикла">
-  <h2>Стек и очереди</h2>
-  <ol class="viz-steps" id="viz-steps">
-    <li>1. Одна macrotask</li>
-    <li>2. Все microtasks</li>
-    <li>3. Кадр, если пора</li>
-  </ol>
-  <div class="viz-label">* По кругу: 1 → 2 → 3 → 1 …</div>
-  <div><div class="viz-label">Call stack</div><div class="flask"><div class="stack" id="viz-stack"></div></div></div>
-  <div><div class="viz-label">Очередь macro</div><div class="queue" id="viz-macro"></div></div>
-  <div><div class="viz-label">Очередь micro</div><div class="queue" id="viz-micro"></div></div>
-  <p class="viz-note" id="viz-note" aria-live="off"></p>
-  <div class="viz-controls">
-    <button id="viz-play" type="button">Остановить</button>
-    <button id="viz-next" type="button">Шаг</button>
-  </div>
-</aside>
 </div>
 
 <script>
