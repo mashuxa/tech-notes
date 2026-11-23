@@ -130,6 +130,19 @@ button:focus-visible { outline: 3px solid var(--frame); outline-offset: 2px; }
 table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 15px; }
 th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
 tr:last-child td { border-bottom: 0; } th { font-weight: 600; color: var(--muted); }
+.icon-sprite { position: absolute; overflow: hidden; }
+.task-icon { display: inline-block; vertical-align: -3px; width: 20px; height: 20px; flex: none; stroke: currentColor; stroke-width: 1.9; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.task-column h3 .task-icon { vertical-align: -4px; }
+.compat-api-label { display: inline-flex; align-items: center; gap: 7px; }
+.compat-api-icon { width: 16px; height: 16px; }
+.compat-kind-macro { --compat-kind: var(--macro); }
+.compat-kind-micro { --compat-kind: var(--micro); }
+.compat-kind-render { --compat-kind: var(--frame); }
+.compat-kind-idle { --compat-kind: #0e9876; }
+.compat-kind-macro th, .compat-kind-micro th, .compat-kind-render th, .compat-kind-idle th { color: var(--compat-kind); background: color-mix(in srgb, var(--compat-kind) 6%, var(--panel)); border-left: 3px solid var(--compat-kind); }
+.compat-table td.compat-yes { background: color-mix(in srgb, #0e9876 8%, var(--panel)); }
+.compat-table td.compat-no { background: color-mix(in srgb, #c24141 8%, var(--panel)); }
+.compat-table td.compat-flag { background: color-mix(in srgb, #b86e00 12%, var(--panel)); }
 .task-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
 .task-column { min-width: 0; padding: 16px; border: 1px solid var(--line); border-top: 4px solid var(--task-color); background: color-mix(in srgb, var(--task-color) 7%, var(--panel)); border-radius: 8px; }
 .task-column h3 { margin: 0 0 8px; color: var(--task-color); font-size: 18px; }
@@ -164,6 +177,13 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 </style>
 </head>
 <body>
+<svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="0" height="0">
+<symbol id="task-icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></symbol>
+<symbol id="task-icon-zap" viewBox="0 0 24 24"><path d="m13 2-10 12h8l-1 8 11-12h-8z"/></symbol>
+<symbol id="task-icon-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="15" rx="2"/><path d="M8 22h8m-4-4v4"/></symbol>
+<symbol id="task-icon-hourglass" viewBox="0 0 24 24"><path d="M5 3h14M5 21h14M6 3c0 6 6 6 6 9s-6 3-6 9M18 3c0 6-6 6-6 9s6 3 6 9"/></symbol>
+<symbol id="task-icon-code" viewBox="0 0 24 24"><path d="m8 8-4 4 4 4m8-8 4 4-4 4m-3-10-2 20"/></symbol>
+</svg>
 
 <button class="desktop-nav-toggle" id="desktop-nav-toggle" type="button" aria-label="Скрыть навигацию" aria-expanded="true" aria-controls="menu" title="Скрыть навигацию">◀</button>
 <button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="menu">☰</button>
@@ -276,8 +296,8 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>queueMicrotask</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>queueMicrotask</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -295,7 +315,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -325,8 +345,8 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>MessageChannel</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>MessageChannel</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -365,9 +385,9 @@ for (const item of items) {
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>queueMicrotask</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>Promise.then / await</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>queueMicrotask</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.then / await</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -414,8 +434,8 @@ for (const item of items) {
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>window.postMessage</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>window.postMessage</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -456,8 +476,8 @@ requestAnimationFrame → Style calculation → Layout → Paint → Compositing
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>CSS transform / opacity</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr><th scope="row"><code>CSS transform / opacity</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -478,7 +498,7 @@ requestAnimationFrame → Style calculation → Layout → Paint → Compositing
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -501,7 +521,7 @@ requestAnimationFrame → Style calculation → Layout → Paint → Compositing
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -553,8 +573,8 @@ items.forEach((el, i) => { el.style.height = heights[i] + 10 + "px"; });</pre>
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>CSS transform / opacity</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>CSS transform / opacity</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -588,10 +608,10 @@ JS → fetch(url) → браузер выполняет сетевую опер�
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>fetch</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>Promise.then / await</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr><th scope="row"><code>fetch</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.then / await</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -602,7 +622,7 @@ JS → fetch(url) → браузер выполняет сетевую опер�
     <p class="gap">Цвета показывают <strong>как планируется работа</strong>, а не тип функции. Одни API ставят задачи, другие вызываются в фазе кадра. Сам вызов API обычно синхронный; позже запускается его callback.</p>
     <div class="task-columns" aria-label="Типы работы в браузере">
       <div class="task-column task-macro">
-        <h3>Macrotasks <small>(tasks)</small></h3>
+        <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg> Macrotasks <small>(tasks)</small></h3>
         <p class="task-explain">Одна отдельная задача. Между задачами браузер может обработать microtasks и обновить кадр.</p>
         <ul>
           <li><code>&lt;script&gt;</code> — первоначальное выполнение скрипта</li>
@@ -617,7 +637,7 @@ JS → fetch(url) → браузер выполняет сетевую опер�
         <p class="task-note">Обработка сетевого ответа происходит асинхронно; последующий <code>fetch().then()</code> выполняется уже как microtask.</p>
       </div>
       <div class="task-column task-micro">
-        <h3>Microtasks</h3>
+        <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg> Microtasks</h3>
         <p class="task-explain">Вся очередь выполняется перед следующей задачей и возможностью отрисовать кадр.</p>
         <ul>
           <li><code>Promise.then()</code></li>
@@ -630,7 +650,7 @@ JS → fetch(url) → браузер выполняет сетевую опер�
         <p class="task-note">Новые microtasks, созданные во время обработки очереди, тоже выполнятся до следующей task. Длинная цепочка может блокировать экран.</p>
       </div>
       <div class="task-column task-render">
-        <h3>Rendering <small>(фаза кадра)</small></h3>
+        <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg> Rendering <small>(фаза кадра)</small></h3>
         <p class="task-explain">Не третья очередь задач: браузер обновляет изображение, когда есть возможность и необходимость.</p>
         <ul>
           <li><code>requestAnimationFrame()</code> — callback перед отрисовкой</li>
@@ -640,7 +660,7 @@ JS → fetch(url) → браузер выполняет сетевую опер�
         <p class="task-note">Если главная нить занята JS или microtasks, подготовка нового кадра задерживается. Некоторые compositor-анимации при этом могут продолжаться.</p>
       </div>
       <div class="task-column task-idle">
-        <h3>Idle <small>(свободное время)</small></h3>
+        <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg> Idle <small>(свободное время)</small></h3>
         <p class="task-explain">Браузер даёт выполнить несрочную работу, когда располагает временем.</p>
         <ul>
           <li><code>requestIdleCallback()</code> — callback в idle-период (или после заданного timeout)</li>
@@ -648,7 +668,7 @@ JS → fetch(url) → браузер выполняет сетевую опер�
         <p class="task-note">Не гарантирует немедленного вызова; не подходит для анимации. В Safari поддержка ограничена.</p>
       </div>
       <div class="task-column task-sync">
-        <h3>Synchronous JS <small>(прямо сейчас)</small></h3>
+        <h3><svg class="task-icon" aria-hidden="true"><use href="#task-icon-code"/></svg> Synchronous JS <small>(прямо сейчас)</small></h3>
         <p class="task-explain">Не отдельная очередь. Код выполняется в текущем Call Stack, пока не завершится.</p>
         <ul>
           <li>Обычные вызовы функций, вычисления, <code>console.log()</code></li>
@@ -660,6 +680,20 @@ JS → fetch(url) → браузер выполняет сетевую опер�
       </div>
     </div>
     <p class="gap"><strong>Запомнить:</strong> task → все microtasks → возможный Rendering → следующая task. Idle выполняется, когда браузер выделяет свободное время. Это упрощённая модель; у браузера несколько источников задач, а не одна строго упорядоченная macro-очередь.</p>
+<h3>Как работает Idle</h3>
+<p><code>requestIdleCallback(fn)</code> просит браузер выполнить <strong>несрочную работу</strong> во время простоя (или при истечении указанного <code>timeout</code>). Это не microtask и не фаза отрисовки. Callback работает на главном потоке и может заблокировать интерфейс, если выполняется долго.</p>
+<pre>requestIdleCallback((deadline) =&gt; {
+  while (deadline.timeRemaining() &gt; 0 &amp;&amp; jobs.length) {
+    doWork(jobs.shift());
+  }
+}, { timeout: 2000 });</pre>
+<p><code>deadline.timeRemaining()</code> — примерно сколько времени осталось до следующей важной работы; <code>deadline.didTimeout</code> сообщает, что timeout уже истёк. Без timeout браузер может надолго откладывать callback. С timeout он может выполниться даже без свободного времени: поэтому работу нужно разбивать на короткие порции. Доступность API проверяй отдельно для Safari.</p>
+<h3>Почему rAF и ResizeObserver — не microtasks</h3>
+<p>Браузер вызывает <code>requestAnimationFrame</code> при обновлении кадра, а <code>ResizeObserver</code> — в процессе обновления рендеринга после Layout и перед Paint. Это <strong>не очередь microtasks</strong>. Но внутри их callbacks можно вызвать <code>queueMicrotask()</code> или завершить Promise: тогда созданное продолжение будет уже microtask.</p>
+<pre>requestAnimationFrame(() =&gt; {
+  console.log("rAF");              // callback фазы кадра
+  queueMicrotask(() =&gt; console.log("micro")); // микротаска
+});</pre>
 
   
   <!-- Compatibility pattern: API rows, six browsers; sourced from MDN browser-compat-data -->
@@ -668,15 +702,15 @@ JS → fetch(url) → браузер выполняет сетевую опер�
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>queueMicrotask</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>MutationObserver</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>IntersectionObserver</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>ResizeObserver</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>scheduler.postTask</code></th><td>✓ 94+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
-        <tr><th scope="row"><code>scheduler.yield</code></th><td>✓ 129+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>requestIdleCallback</code></th><td>✓ 47+</td><td>✓ 55+</td><td>✓</td><td>Флаг</td><td>Флаг</td><td>✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>queueMicrotask</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>MutationObserver</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>IntersectionObserver</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>ResizeObserver</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.postTask</code></span></th><td class="compat-yes">✓ 94+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.yield</code></span></th><td class="compat-yes">✓ 129+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-idle"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg><code>requestIdleCallback</code></span></th><td class="compat-yes">✓ 47+</td><td class="compat-yes">✓ 55+</td><td class="compat-yes">✓</td><td class="compat-flag">Флаг</td><td class="compat-flag">Флаг</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
         <p class="compat-note">Safari: requestIdleCallback доступен только экспериментально с флагом; по умолчанию не рассчитывай на него.</p>
@@ -701,8 +735,8 @@ JS → fetch(url) → браузер выполняет сетевую опер�
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>addEventListener</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>addEventListener</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -910,12 +944,12 @@ el.append(b);   // один вызов, в списке 2 записи</pre>
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>MessageChannel</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>window.postMessage</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>queueMicrotask</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>MutationObserver</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>scheduler.yield</code></th><td>✓ 129+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>MessageChannel</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>window.postMessage</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>queueMicrotask</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>MutationObserver</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.yield</code></span></th><td class="compat-yes">✓ 129+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
         <p class="compat-note">Для scheduler.yield проверяй поддержку: Safari не реализует этот API.</p>
@@ -939,9 +973,9 @@ console.log("2 синхронно");</pre>
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>Promise.then / await</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.then / await</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -1001,10 +1035,10 @@ console.log("2 синхронно");</pre>
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>MessageChannel</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>scheduler.postTask</code></th><td>✓ 94+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
-        <tr><th scope="row"><code>scheduler.yield</code></th><td>✓ 129+</td><td>✓ 142+</td><td>✓</td><td>✕</td><td>✕</td><td>✓</td></tr>
-        <tr><th scope="row"><code>requestIdleCallback</code></th><td>✓ 47+</td><td>✓ 55+</td><td>✓</td><td>Флаг</td><td>Флаг</td><td>✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>MessageChannel</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.postTask</code></span></th><td class="compat-yes">✓ 94+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>scheduler.yield</code></span></th><td class="compat-yes">✓ 129+</td><td class="compat-yes">✓ 142+</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-idle"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg><code>requestIdleCallback</code></span></th><td class="compat-yes">✓ 47+</td><td class="compat-yes">✓ 55+</td><td class="compat-yes">✓</td><td class="compat-flag">Флаг</td><td class="compat-flag">Флаг</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
         <p class="compat-note">React Scheduler использует собственные механизмы; поддержку React не следует путать с наличием нативного scheduler.postTask. Safari: requestIdleCallback только с экспериментальным флагом.</p>
@@ -1258,8 +1292,8 @@ export function FormTree({ open }: { open: boolean }) {
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>requestAnimationFrame</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>requestIdleCallback</code></th><td>✓ 47+</td><td>✓ 55+</td><td>✓</td><td>Флаг</td><td>Флаг</td><td>✓</td></tr>
+        <tr class="compat-kind-render"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-monitor"/></svg><code>requestAnimationFrame</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-idle"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-hourglass"/></svg><code>requestIdleCallback</code></span></th><td class="compat-yes">✓ 47+</td><td class="compat-yes">✓ 55+</td><td class="compat-yes">✓</td><td class="compat-flag">Флаг</td><td class="compat-flag">Флаг</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
         <p class="compat-note">React и Next.js — библиотеки, а не Web API. Таблица отражает только используемые ими браузерные методы. Safari: requestIdleCallback экспериментален.</p>
@@ -1477,9 +1511,9 @@ controller.abort();</pre>
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>Promise.all / race</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>Promise.allSettled</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-        <tr><th scope="row"><code>Promise.any / finally</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.all / race</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.allSettled</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
+        <tr class="compat-kind-micro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-zap"/></svg><code>Promise.any / finally</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -1540,7 +1574,7 @@ socket.onmessage = (event) => console.log(event.data);</pre>
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>WebSocket</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>WebSocket</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
@@ -1619,13 +1653,13 @@ button.addEventListener("click", () =&gt; {
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>showOpenFilePicker</code></th><td>✓ 86+</td><td>✕</td><td>✓</td><td>✕</td><td>✕</td><td>✓ 132+</td></tr>
-        <tr><th scope="row"><code>showSaveFilePicker</code></th><td>✓ 86+</td><td>✕</td><td>✓</td><td>✕</td><td>✕</td><td>✓ 132+</td></tr>
-        <tr><th scope="row"><code>showDirectoryPicker</code></th><td>✓ 86+</td><td>✕</td><td>✓</td><td>✕</td><td>✕</td><td>✓ 132+</td></tr>
-        <tr><th scope="row"><code>FileSystemFileHandle.getFile</code></th><td>✓ 86+</td><td>✓ 111+</td><td>✓</td><td>✓ 15.2+</td><td>✓ 15.2+</td><td>✓ 109+</td></tr>
-        <tr><th scope="row"><code>FileSystemFileHandle.createWritable</code></th><td>✓ 86+</td><td>✓ 111+</td><td>✓</td><td>✓ 26+</td><td>✓ 26+</td><td>✓ 109+</td></tr>
-        <tr><th scope="row"><code>queryPermission / requestPermission</code></th><td>✓ 86+</td><td>✕</td><td>✓</td><td>✕</td><td>✕</td><td>✓ 109+</td></tr>
-        <tr><th scope="row"><code>input[type=file]</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><th scope="row"><code>showOpenFilePicker</code></th><td class="compat-yes">✓ 86+</td><td class="compat-no">✕</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓ 132+</td></tr>
+        <tr><th scope="row"><code>showSaveFilePicker</code></th><td class="compat-yes">✓ 86+</td><td class="compat-no">✕</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓ 132+</td></tr>
+        <tr><th scope="row"><code>showDirectoryPicker</code></th><td class="compat-yes">✓ 86+</td><td class="compat-no">✕</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓ 132+</td></tr>
+        <tr><th scope="row"><code>FileSystemFileHandle.getFile</code></th><td class="compat-yes">✓ 86+</td><td class="compat-yes">✓ 111+</td><td class="compat-yes">✓</td><td class="compat-yes">✓ 15.2+</td><td class="compat-yes">✓ 15.2+</td><td class="compat-yes">✓ 109+</td></tr>
+        <tr><th scope="row"><code>FileSystemFileHandle.createWritable</code></th><td class="compat-yes">✓ 86+</td><td class="compat-yes">✓ 111+</td><td class="compat-yes">✓</td><td class="compat-yes">✓ 26+</td><td class="compat-yes">✓ 26+</td><td class="compat-yes">✓ 109+</td></tr>
+        <tr><th scope="row"><code>queryPermission / requestPermission</code></th><td class="compat-yes">✓ 86+</td><td class="compat-no">✕</td><td class="compat-yes">✓</td><td class="compat-no">✕</td><td class="compat-no">✕</td><td class="compat-yes">✓ 109+</td></tr>
+        <tr><th scope="row"><code>input[type=file]</code></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
         <p class="compat-note">Важно: методы getFile/createWritable доступны также для OPFS — внутреннего файлового хранилища сайта. Это не означает, что Firefox или Safari умеют открывать произвольный файл через showOpenFilePicker. Android — Chrome Android, другие браузеры могут отличаться.</p>
@@ -1696,7 +1730,7 @@ const onChange = useMemo(() => debounce(search, 300), [search]);</pre>
     <div class="tablewrap"><table class="compat-table">
       <thead><tr><th scope="col">API</th><th scope="col">Chrome</th><th scope="col">Firefox</th><th scope="col">Opera</th><th scope="col">Safari macOS</th><th scope="col">Safari iOS</th><th scope="col">Chrome Android</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>setTimeout / setInterval</code></th><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr class="compat-kind-macro"><th scope="row"><span class="compat-api-label"><svg class="task-icon compat-api-icon" aria-hidden="true"><use href="#task-icon-clock"/></svg><code>setTimeout / setInterval</code></span></th><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td><td class="compat-yes">✓</td></tr>
       </tbody>
     </table></div>
     <p class="compat-note">✓ — поддерживается; ✕ — нет; «Флаг» — экспериментально. Номер — минимальная версия. Источник: <a href="https://github.com/mdn/browser-compat-data" target="_blank" rel="noopener noreferrer">MDN Browser Compatibility Data</a> (23.11.2026).</p>
