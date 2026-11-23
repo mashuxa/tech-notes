@@ -26,8 +26,7 @@ body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--sans); }
 .viz h2 { font-size: 16px; margin: 0; }
 .viz-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
 .viz-steps li { padding: 5px 8px; border-left: 3px solid var(--line); color: var(--muted); }
-.viz-steps li.now, .loop li.now { color: var(--fg); font-weight: 600; background: var(--bg); border-left-color: var(--frame); }
-.loop li.now { outline: 2px solid var(--frame); outline-offset: 2px; border-radius: 2px; }
+.viz-steps li.now { color: var(--fg); font-weight: 600; background: var(--bg); border-left-color: var(--frame); }
 .viz-label { font-weight: 600; color: var(--muted); font-size: 12px; margin-bottom: 3px; }
 .flask { position: relative; width: min(100%, 170px); margin: 8px auto 0; }
 .flask::before { content: ""; position: absolute; z-index: 1; top: 0; left: -8px; right: -8px; height: 5px; background: var(--fg); border-radius: 3px; }
@@ -2214,14 +2213,13 @@ const VIZ = [
   { step: 2, stack: ["Style → Layout → Paint → Composite"], macro: [], micro: [], note: "Следующий кадр показывает новые данные, просто позже." },
 ];
 const vizStepItems = [...document.querySelectorAll("#viz-steps li")];
-const loopItems = [...document.querySelectorAll("#loop .loop li")];
 const chips = (items, cls) => items.map((text) => `<span class="chip ${cls}">${text}</span>`).join("");
 const chipClass = (text) => (text.startsWith("micro") ? "micro" : /rAF|layout/.test(text) ? "frame" : "macro");
 let vizIndex = 0;
 let vizShown = [];
 const renderViz = () => {
   const state = VIZ[vizIndex];
-  [vizStepItems, loopItems].forEach((items) => items.forEach((item, i) => item.classList.toggle("now", i === state.step)));
+  vizStepItems.forEach((item, i) => item.classList.toggle("now", i === state.step));
   document.getElementById("viz-stack").innerHTML = state.stack.map((text) => `<span class="chip ${chipClass(text)}${vizShown.includes(text) ? "" : " enter"}">${text}</span>`).join("");
   vizShown = state.stack;
   document.getElementById("viz-macro").innerHTML = chips(state.macro, "macro");
