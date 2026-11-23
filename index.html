@@ -260,11 +260,11 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 <nav class="menu" id="menu" aria-label="Темы">
   <div class="menu-topic"><a href="?page=event-loop" data-doc-nav>Event Loop</a></div>
   <a href="?page=event-loop#loop" data-doc-nav>Один виток цикла</a>
-  <a href="?page=event-loop#web-apis" data-doc-nav>Web APIs и очереди</a>
+  <a href="?page=event-loop#between" data-doc-nav>Циклы между кадрами</a>
   <a href="?page=event-loop#types" data-doc-nav>Micro, macro и другие</a>
+  <a href="?page=event-loop#web-apis" data-doc-nav>Web APIs и очереди</a>
   <a href="?page=event-loop#during" data-doc-nav>Задачи на лету</a>
   <a href="?page=event-loop#raf" data-doc-nav>Как часто вызывается rAF</a>
-  <a href="?page=event-loop#between" data-doc-nav>Циклы между кадрами</a>
   <a href="?page=event-loop#blocking" data-doc-nav>Что блокирует перерисовку</a>
   <a href="?page=event-loop#frame-time" data-doc-nav>Когда рисуется кадр</a>
   <a href="?page=event-loop#render-stages" data-doc-nav>Стадии Render</a>
@@ -374,25 +374,25 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 </aside>
   </div>
 
-  <section id="web-apis">
-    <h2>Web APIs: откуда берутся задачи</h2>
-    <p><strong>Web APIs</strong> — возможности, которые предоставляет браузер: таймеры, сеть, DOM, события, анимации и другое. Это не одна общая очередь и не обязательно отдельный поток.</p>
-    <p><strong>Вызвать API ≠ выполнить его callback.</strong> Вызов <code>setTimeout</code>, <code>fetch</code> или <code>requestAnimationFrame</code> происходит синхронно. А callback либо продолжение запускается позже — по правилам конкретного API.</p>
-    <pre>JS → setTimeout(callback, 0) → браузер отслеживает таймер
-   → задача (task / macro) → callback в Call Stack
+  
 
-JS → Promise.resolve().then(callback)
-   → microtask queue → callback после текущего JS
-
-JS → requestAnimationFrame(callback)
-   → список callback для следующего кадра → callback перед paint
-
-JS → fetch(url) → браузер выполняет сетевую операцию
-   → обрабатывается ответ → Promise выполняется
-   → .then(callback) как microtask</pre>
-    <p><strong>Нет единой «очереди Web APIs».</strong> У браузера несколько источников и очередей задач; Event Loop выбирает подходящую задачу, обрабатывает microtasks и может обновить изображение. Поэтому две macro из разных источников не всегда имеют гарантированный порядок.</p>
-    <p><strong>Один и тот же callback</strong> может выполняться по-разному. <code>button.addEventListener("click", fn)</code> регистрирует функцию. Реальный пользовательский клик обрабатывается асинхронно как task, а <code>button.click()</code> или <code>dispatchEvent()</code> из JS вызывают обработчики синхронно в текущем стеке.</p>
-    <p><strong>Сервер — отдельная среда.</strong> У Node.js свой Event Loop с фазами и API <code>process.nextTick</code>, <code>setImmediate</code>. Здесь разбираем браузер; Node.js есть ниже в разделе Fullstack.</p></section>
+  <section id="between">
+    <h2>Успевает ли пройти несколько циклов между кадрами?</h2>
+    <p class="answer">Да, если задачи короткие, витков может быть много. А может не быть ни одного полного кадра, если задача длинная.</p>
+    <div class="scroll"><div class="timeline" id="timeline" role="img" aria-label="Две временные шкалы на 50 миллисекунд. На первой короткие задачи и отрисовка каждые 16,67 мс. На второй задача длиной 40 мс, из-за которой два кадра пропущены."></div></div>
+    <div class="legend">
+      <span><i style="background:var(--macro)"></i>macrotask</span>
+      <span><i style="background:var(--micro)"></i>microtasks</span>
+      <span><i style="background:var(--frame)"></i>rAF и отрисовка</span>
+      <span>Пунктир: момент кадра</span>
+    </div>
+    <p class="gap">Шкалы показывают схему, а длительности условные. Ниже настоящий замер: страница гоняет короткие задачи через <code>MessageChannel</code> и считает, сколько их проходит между кадрами в твоём браузере.</p>
+    <button id="measure" type="button">Замерить ещё раз</button>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><strong id="s-frame">…</strong><small>мс между вызовами rAF</small></div>
+      <div class="stat"><strong id="s-tasks">…</strong><small>macrotasks в среднем между кадрами</small></div>
+      <div class="stat"><strong id="s-hz">…</strong><small>Гц, частота кадров по замеру</small></div>
+    </div></section>
 
   <section id="types">
     <h2>Что macro, что micro и почему</h2>
@@ -472,23 +472,7 @@ JS → fetch(url) → браузер выполняет сетевую опер�
     <p>Частоту задаёт экран: при 120 Гц будет 8,33 мс. Это не таймер, поэтому если главный поток занят, кадр пропускается и следующий вызов приходит позже.</p>
     <p>Важная деталь: rAF срабатывает один раз. Чтобы анимация продолжалась, колбэк сам снова вызывает <code>requestAnimationFrame</code>. Несколько колбэков, поставленных до кадра, выполнятся все в этом кадре.</p></section>
 
-  <section id="between">
-    <h2>Успевает ли пройти несколько циклов между кадрами?</h2>
-    <p class="answer">Да, если задачи короткие, витков может быть много. А может не быть ни одного полного кадра, если задача длинная.</p>
-    <div class="scroll"><div class="timeline" id="timeline" role="img" aria-label="Две временные шкалы на 50 миллисекунд. На первой короткие задачи и отрисовка каждые 16,67 мс. На второй задача длиной 40 мс, из-за которой два кадра пропущены."></div></div>
-    <div class="legend">
-      <span><i style="background:var(--macro)"></i>macrotask</span>
-      <span><i style="background:var(--micro)"></i>microtasks</span>
-      <span><i style="background:var(--frame)"></i>rAF и отрисовка</span>
-      <span>Пунктир: момент кадра</span>
-    </div>
-    <p class="gap">Шкалы показывают схему, а длительности условные. Ниже настоящий замер: страница гоняет короткие задачи через <code>MessageChannel</code> и считает, сколько их проходит между кадрами в твоём браузере.</p>
-    <button id="measure" type="button">Замерить ещё раз</button>
-    <div class="stats" aria-live="polite">
-      <div class="stat"><strong id="s-frame">…</strong><small>мс между вызовами rAF</small></div>
-      <div class="stat"><strong id="s-tasks">…</strong><small>macrotasks в среднем между кадрами</small></div>
-      <div class="stat"><strong id="s-hz">…</strong><small>Гц, частота кадров по замеру</small></div>
-    </div></section>
+  
 
   <section id="blocking">
     <h2>Что блокирует перерисовку?</h2>
@@ -640,6 +624,26 @@ items.forEach((el) => { el.style.height = el.offsetHeight + 10 + "px"; });
 // Хорошо: сначала все чтения, потом все записи
 const heights = items.map((el) => el.offsetHeight);
 items.forEach((el, i) => { el.style.height = heights[i] + 10 + "px"; });</pre></section>
+
+  <section id="web-apis">
+    <h2>Web APIs: откуда берутся задачи</h2>
+    <p><strong>Web APIs</strong> — возможности, которые предоставляет браузер: таймеры, сеть, DOM, события, анимации и другое. Это не одна общая очередь и не обязательно отдельный поток.</p>
+    <p><strong>Вызвать API ≠ выполнить его callback.</strong> Вызов <code>setTimeout</code>, <code>fetch</code> или <code>requestAnimationFrame</code> происходит синхронно. А callback либо продолжение запускается позже — по правилам конкретного API.</p>
+    <pre>JS → setTimeout(callback, 0) → браузер отслеживает таймер
+   → задача (task / macro) → callback в Call Stack
+
+JS → Promise.resolve().then(callback)
+   → microtask queue → callback после текущего JS
+
+JS → requestAnimationFrame(callback)
+   → список callback для следующего кадра → callback перед paint
+
+JS → fetch(url) → браузер выполняет сетевую операцию
+   → обрабатывается ответ → Promise выполняется
+   → .then(callback) как microtask</pre>
+    <p><strong>Нет единой «очереди Web APIs».</strong> У браузера несколько источников и очередей задач; Event Loop выбирает подходящую задачу, обрабатывает microtasks и может обновить изображение. Поэтому две macro из разных источников не всегда имеют гарантированный порядок.</p>
+    <p><strong>Один и тот же callback</strong> может выполняться по-разному. <code>button.addEventListener("click", fn)</code> регистрирует функцию. Реальный пользовательский клик обрабатывается асинхронно как task, а <code>button.click()</code> или <code>dispatchEvent()</code> из JS вызывают обработчики синхронно в текущем стеке.</p>
+    <p><strong>Сервер — отдельная среда.</strong> У Node.js свой Event Loop с фазами и API <code>process.nextTick</code>, <code>setImmediate</code>. Здесь разбираем браузер; Node.js есть ниже в разделе Fullstack.</p></section>
 
 
 
