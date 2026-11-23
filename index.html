@@ -262,6 +262,15 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 .interval-caption + .interval-caption { border-left:1px solid var(--line); }
 .timeline-explain { font-size:12px; color:var(--muted); font-weight:400; margin:4px 0 0; }
 @media (max-width:600px) { .interval-caption { padding:4px; font-size:11px; } }
+
+/* Shared FAQ block: reused on any documentation topic, no decorative card wrapper. */
+.faq-collection { padding-top:18px; border-top:1px solid var(--line); }
+.faq-collection > h2 { margin:0 0 8px; }
+.faq-collection .faq-category { margin:14px 0 24px; }
+.faq-category > h3 { margin:14px 0 6px; font-size:15px; font-weight:600; color:var(--muted); }
+.faq-collection .faq-item { background:transparent; }
+.faq-collection .faq-item > summary { font-size:15px; font-weight:500; color:var(--fg); }
+.faq-collection .faq-answer { font-size:15px; line-height:1.6; }
 </style>
 </head>
 <body>
@@ -2604,6 +2613,78 @@ const docPages = documentationPages.map((entry,index) => {
   page.append(pager);
   return page;
 });
+/* Reusable FAQ collector: question sections, existing FAQ groups and question subheadings.
+   On each topic page, render one dedicated FAQ block with closed native disclosures.
+   Future content: use a section headed by a question, or details.faq-item inside a section. */
+function assembleFaqForPage(page) {
+  const sources = [...page.querySelectorAll(":scope > section[id]")];
+  const collection = document.createElement("section");
+  collection.className = "faq-collection";
+  collection.id = "faq-" + page.dataset.page;
+  const heading = document.createElement("h2");
+  heading.textContent = "Вопросы и ответы";
+  collection.append(heading);
+  const intro = document.createElement("p");
+  intro.className = "faq-intro";
+  intro.textContent = "Нажми на вопрос, чтобы раскрыть ответ.";
+  collection.append(intro);
+
+  for (const source of sources) {
+    const title = source.querySelector(":scope > h2");
+    if (source.querySelector(":scope > details.faq-item")) {
+      source.classList.add("faq-category");
+      source.querySelectorAll(":scope > .faq-intro").forEach(el => el.remove());
+      if (title) {
+        const subheading = document.createElement("h3");
+        subheading.textContent = title.textContent;
+        title.replaceWith(subheading);
+      }
+      collection.append(source);
+    } else if (title && title.textContent.trim().endsWith("?")) {
+      const item = document.createElement("details");
+      item.className = "faq-item";
+      item.id = source.id;
+      const summary = document.createElement("summary");
+      summary.textContent = title.textContent.trim();
+      const answer = document.createElement("div");
+      answer.className = "faq-answer";
+      title.remove();
+      while (source.firstChild) answer.append(source.firstChild);
+      item.append(summary, answer);
+      source.remove();
+      collection.append(item);
+    } else {
+      // Pull direct question headings from long explanatory sections into FAQ.
+      const candidates = [...source.querySelectorAll(":scope > h3")].filter(
+        item => item.textContent.trim().endsWith("?")
+      );
+      for (const question of candidates) {
+        const item = document.createElement("details");
+        item.className = "faq-item";
+        const summary = document.createElement("summary");
+        summary.textContent = question.textContent.trim();
+        const answer = document.createElement("div");
+        answer.className = "faq-answer";
+        let cursor = question.nextSibling;
+        while (cursor) {
+          if (cursor.nodeType === Node.ELEMENT_NODE && /^H[2-4]$/.test(cursor.tagName)) break;
+          const next = cursor.nextSibling;
+          answer.append(cursor);
+          cursor = next;
+        }
+        question.remove();
+        item.append(summary, answer);
+        collection.append(item);
+      }
+    }
+  }
+
+  if (collection.querySelector(".faq-item")) {
+    const pager = page.querySelector(":scope > .doc-pager");
+    page.insertBefore(collection, pager);
+  }
+}
+docPages.forEach(assembleFaqForPage);
 const sectionPages = Object.fromEntries([...document.querySelectorAll("#menu > a")].map(link => {
   const url = new URL(link.href);
   return [decodeURIComponent(url.hash.slice(1)),url.searchParams.get("page")];
@@ -2638,7 +2719,10 @@ function showRoute(scroll = true) {
   toggleMenu(false);
   if(scroll) {
     const el = anchor ? document.getElementById(anchor) : null;
-    if(el && !el.closest(".doc-page[hidden]")) el.scrollIntoView({behavior:"auto",block:"start"});
+    if(el && !el.closest(".doc-page[hidden]")) {
+      if(el.matches("details.faq-item")) el.open = true;
+      el.scrollIntoView({behavior:"auto",block:"start"});
+    }
     else window.scrollTo({top:0,left:0,behavior:"auto"});
   }
 }
