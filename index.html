@@ -383,7 +383,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   
 
   <section id="between">
-    <p>Если выполнение macrotask и её microtasks занимает меньше интервала между кадрами, браузер может выполнить несколько витков Event Loop до следующего Rendering. Например, при <strong>60 Гц</strong> между обновлениями экрана около <strong>16,67 мс</strong>: на первой шкале показаны <strong>4 витка → 1 Rendering</strong>, затем ещё 4 витка → 1 Rendering.</p>
+    <p>Если выполнение macrotask и её microtasks занимает меньше интервала между кадрами, браузер может выполнить несколько витков Event Loop до следующего Rendering.</p>
     <div class="timeline-wrap"><div class="timeline" id="timeline" role="img" aria-label="Две временные шкалы на 50 миллисекунд. На первой короткие задачи и отрисовка каждые 16,67 мс. На второй задача длиной 40 мс, из-за которой два кадра пропущены."></div></div>
     <div class="legend">
       <span><i style="background:var(--macro)"></i>macrotask</span>
