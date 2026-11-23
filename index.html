@@ -2670,9 +2670,14 @@ for (const [frameIndex, start] of [0, 16.67, 33.33].entries()) {
       shortRow += seg("mt numbered", start + offset, 3, "3 мс");
     }
   } else if (frameIndex === 2) {
-    // Third interval: one macrotask followed by six microtasks.
+    // Third interval: macro -> 6 micro -> macro -> 4 micro.
+    // All microtasks after the first macro complete before the next macro starts.
     shortRow += seg("mt numbered", start + 0.2, 3, "3 мс");
     for (const offset of [3.2, 4.0, 4.8, 5.6, 6.4, 7.2]) {
+      shortRow += seg("ut", start + offset, 0.5);
+    }
+    shortRow += seg("mt numbered", start + 8.0, 3, "3 мс");
+    for (const offset of [11.2, 12.0, 12.8, 13.6]) {
       shortRow += seg("ut", start + offset, 0.5);
     }
   } else {
@@ -2686,7 +2691,7 @@ for (const [frameIndex, start] of [0, 16.67, 33.33].entries()) {
 }
 
 timeline.innerHTML = `
-  <div><div class="row-title">1-й интервал: 4 × (macro → micro). 2-й: macro → micro → 3 macro. 3-й: macro → 6 micro.</div><p class="timeline-explain">Длительности условные: <strong>macrotask — 3 мс</strong>, <strong>microtask — 0,5 мс</strong>, <strong>Rendering — 2 мс</strong>. В третьем интервале одна macrotask создаёт очередь из шести microtasks.</p><div class="track">${ticks}${shortRow}</div>${scale}</div>
+  <div><div class="row-title">1-й интервал: 4 × (macro → micro). 2-й: macro → micro → 3 macro. 3-й: macro → 6 micro → macro → 4 micro.</div><p class="timeline-explain">Длительности условные: <strong>macrotask — 3 мс</strong>, <strong>microtask — 0,5 мс</strong>, <strong>Rendering — 2 мс</strong>. В третьем интервале первая macrotask создаёт 6 microtasks, а следующая — ещё 4.</p><div class="track">${ticks}${shortRow}</div>${scale}</div>
   <div><div class="row-title">Одна задача на 40 мс: кадры в 16,67 и 33,33 мс пропущены</div><div class="track">${ticks}${seg("mt long", 0, 40, "одна macrotask, 40 мс")}${seg("ut", 40, 0.5)}${seg("ft labeled", 47.8, 2, "2 мс")}</div>${scale}</div>`;
 
 document.getElementById("run").addEventListener("click", () => {
