@@ -133,6 +133,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   <a href="#between">Циклы между кадрами</a>
   <a href="#blocking">Что блокирует перерисовку</a>
   <a href="#frame-time">Когда рисуется кадр</a>
+  <a href="#render-stages">Стадии Render</a>
   <a href="#stale">Отмена кадра</a>
   <a href="#long-render">Долгая отрисовка</a>
   <a href="#threads">Потоки и CSS-анимации</a>
@@ -194,7 +195,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
     <ol class="loop">
       <li>Взять <span class="m">одну macrotask</span> и выполнить до конца.</li>
       <li>Выполнить <span class="u">все microtasks</span>, включая те, что появились по ходу.</li>
-      <li><strong>Только если подошло время кадра:</strong> <span class="f">rAF → layout → paint → composite</span>.</li>
+      <li><strong>Только если подошло время кадра:</strong> <span class="f">rAF → Style calculation → Layout → Paint → Compositing</span>.</li>
     </ol>
     <p class="gap">* Цикл идёт по кругу: 1 → 2 → 3 → 1 …</p>
     <div class="note gap">
@@ -312,6 +313,25 @@ for (const item of items) {
     <p class="gap"><strong>Ограничение:</strong> лимит 5 мс считает только код внутри куска. Micro выполнятся уже после него, и тяжёлые micro всё равно задержат кадр:</p>
     <pre>[кусок macro 5 мс] [micro 30 мс] → кадр задержался</pre>
     <p class="gap">Разбивка работает, только если короткие и macro, и все micro после неё.</p>
+  </section>
+
+  <section id="render-stages">
+    <h2>Стадии браузерного Render (отрисовки)</h2>
+    <p class="answer">После JS и microtasks, когда браузер решает обновить кадр, он выполняет callbacks <code>requestAnimationFrame</code> и необходимые этапы рендеринга.</p>
+    <pre>JS (task) → microtasks → [если нужен кадр]
+requestAnimationFrame → Style calculation → Layout → Paint → Compositing</pre>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Стадия</th><th>Что делает простыми словами</th><th>Пример изменения</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1. Style calculation</strong><br>Recalculate Style</td><td>Определяет, какие CSS-правила применяются и какие итоговые стили у элементов.</td><td>Изменился класс, цвет или CSS-правило.</td></tr>
+        <tr><td><strong>2. Layout</strong><br>Reflow</td><td>Считает размеры и координаты элементов: кто где стоит и сколько места занимает.</td><td>Изменился <code>width</code>, <code>height</code>, <code>font-size</code>.</td></tr>
+        <tr><td><strong>3. Paint</strong></td><td>Готовит инструкции для отрисовки содержимого: текст, цвет, границы, тени; изображение растеризуется в пиксели.</td><td>Изменился <code>background-color</code> или <code>box-shadow</code>.</td></tr>
+        <tr><td><strong>4. Compositing</strong></td><td>Собирает отдельные нарисованные слои в итоговое изображение.</td><td>Анимация <code>transform</code> или <code>opacity</code> часто использует только compositing.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="gap"><strong>Важно:</strong> не каждый кадр проходит все четыре стадии заново. Если изменилась только позиция уже готового слоя через <code>transform</code>, браузер часто может обойтись без нового Layout и Paint. Если изменился <code>width</code>, обычно потребуются Style → Layout → Paint → Composite.</p>
+    <p><strong>Что блокирует:</strong> длинный JS или бесконечная очередь microtasks не дают главному потоку подготовить новый кадр. А CSS-анимации, исполняемые композитором, иногда продолжаются даже при занятом main thread.</p>
+    <p><strong>Для React:</strong> React Render — вычисление изменений компонентов, React Commit — запись в DOM, а эти четыре стадии — уже работа самого браузера с DOM/CSS.</p>
   </section>
 
   <section id="stale">
@@ -2041,12 +2061,12 @@ const VIZ = [
   { step: 0, stack: [], macro: [], micro: [], note: "Macro 2 закончилась." },
   { step: 1, stack: [], macro: [], micro: [], note: "Microtasks нет, шаг сразу закончен." },
   { step: 2, stack: ["колбэк rAF"], macro: [], micro: [], note: "Подошло время кадра: сначала rAF." },
-  { step: 2, stack: ["layout → paint → composite"], macro: [], micro: [], note: "Браузер рисует кадр. Схематично: это работа браузера, а не функция JS." },
-  { step: 2, stack: ["layout → paint → composite"], macro: ["macro 3: данные"], micro: [], note: "Отрисовка затянулась. Пришли важные данные: они ждут в очереди." },
-  { step: 2, stack: ["layout → paint → composite"], macro: ["macro 3: данные"], micro: [], note: "Прошло больше 16,6 мс: момент следующего кадра пропущен. Данные не потеряны." },
+  { step: 2, stack: ["Style → Layout → Paint → Composite"], macro: [], micro: [], note: "Браузер рисует кадр. Схематично: это работа браузера, а не функция JS." },
+  { step: 2, stack: ["Style → Layout → Paint → Composite"], macro: ["macro 3: данные"], micro: [], note: "Отрисовка затянулась. Пришли важные данные: они ждут в очереди." },
+  { step: 2, stack: ["Style → Layout → Paint → Composite"], macro: ["macro 3: данные"], micro: [], note: "Прошло больше 16,6 мс: момент следующего кадра пропущен. Данные не потеряны." },
   { step: 0, stack: ["macro 3: данные"], macro: [], micro: [], note: "Отрисовка закончилась. Macro 3 записывает данные в DOM." },
   { step: 1, stack: [], macro: [], micro: [], note: "Microtasks нет, шаг сразу закончен." },
-  { step: 2, stack: ["layout → paint → composite"], macro: [], micro: [], note: "Следующий кадр показывает новые данные, просто позже." },
+  { step: 2, stack: ["Style → Layout → Paint → Composite"], macro: [], micro: [], note: "Следующий кадр показывает новые данные, просто позже." },
 ];
 const vizStepItems = [...document.querySelectorAll("#viz-steps li")];
 const loopItems = [...document.querySelectorAll("#loop .loop li")];
