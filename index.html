@@ -242,8 +242,8 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   <div class="intro-grid">
   <section id="loop">
     <h2>Один виток цикла</h2>
-<p><strong>Простыми словами:</strong> браузер работает как один повар на кухне. Он готовит одно блюдо за раз, а между блюдами может выглянуть в зал. Заказы ждут в очередях, а цикл решает, что делать дальше.</p>
-<p><strong>Call stack</strong> — стопка функций, которые выполняются прямо сейчас. Пока стек не пуст, цикл ждёт.</p>
+<p><strong>Event Loop</strong> — механизм планирования работы браузера. Он выбирает задачу (task) из доступных очередей, запускает её обработку, затем выполняет все накопившиеся microtasks и при необходимости позволяет браузеру обновить изображение. Длительное выполнение JavaScript задерживает обработку следующих задач и рендеринг.</p>
+<p><strong>Call Stack</strong> — стек вызовов JavaScript (LIFO). В нём выполняются синхронный код и callbacks. Пока текущий JS не завершился, браузер не может начать следующую задачу на том же потоке.</p>
 
 
     <ol class="loop">
@@ -270,7 +270,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   <div><div class="viz-label">Очередь micro</div><div class="queue" id="viz-micro"></div></div>
   <p class="viz-note" id="viz-note" aria-live="off"></p>
   <div class="viz-controls">
-    <button id="viz-play" type="button">Остановить</button>
+    <button id="viz-play" type="button">Запустить</button>
     <button id="viz-next" type="button">Шаг</button>
   </div>
 </aside>
@@ -2228,7 +2228,7 @@ const setPlaying = (playing) => {
 vizPlay.addEventListener("click", () => setPlaying(!vizTimer));
 document.getElementById("viz-next").addEventListener("click", () => { setPlaying(false); nextViz(); });
 renderViz();
-setPlaying(!matchMedia("(prefers-reduced-motion: reduce)").matches);
+setPlaying(false);
 
 const pageLayout = document.querySelector(".layout");
 const desktopNavToggle = document.getElementById("desktop-nav-toggle");
