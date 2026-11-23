@@ -127,6 +127,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
 <nav class="menu" id="menu" aria-label="Темы">
   <div class="menu-topic">Event Loop</div>
   <a href="#loop">Один виток цикла</a>
+  <a href="#web-apis">Web APIs и очереди</a>
   <a href="#during">Задачи на лету</a>
   <a href="#raf">Как часто вызывается rAF</a>
   <a href="#between">Циклы между кадрами</a>
@@ -135,7 +136,7 @@ pre { margin: 0; padding: 14px; background: var(--panel); border: 1px solid var(
   <a href="#stale">Отмена кадра</a>
   <a href="#long-render">Долгая отрисовка</a>
   <a href="#threads">Потоки и CSS-анимации</a>
-  <a href="#types">Что macro, что micro</a>
+  <a href="#types">Micro, macro и другие</a>
   <a href="#source">Клик или колбэк</a>
   <a href="#apis">Как работают API</a>
   <a href="#order">Проверить порядок</a>
@@ -378,6 +379,27 @@ items.forEach((el, i) => { el.style.height = heights[i] + 10 + "px"; });</pre>
 
 
 
+  <section id="web-apis">
+    <h2>Web APIs: откуда берутся задачи</h2>
+    <p><strong>Web APIs</strong> — возможности, которые предоставляет браузер: таймеры, сеть, DOM, события, анимации и другое. Это не одна общая очередь и не обязательно отдельный поток.</p>
+    <p><strong>Вызвать API ≠ выполнить его callback.</strong> Вызов <code>setTimeout</code>, <code>fetch</code> или <code>requestAnimationFrame</code> происходит синхронно. А callback либо продолжение запускается позже — по правилам конкретного API.</p>
+    <pre>JS → setTimeout(callback, 0) → браузер отслеживает таймер
+   → задача (task / macro) → callback в Call Stack
+
+JS → Promise.resolve().then(callback)
+   → microtask queue → callback после текущего JS
+
+JS → requestAnimationFrame(callback)
+   → список callback для следующего кадра → callback перед paint
+
+JS → fetch(url) → браузер выполняет сетевую операцию
+   → обрабатывается ответ → Promise выполняется
+   → .then(callback) как microtask</pre>
+    <p><strong>Нет единой «очереди Web APIs».</strong> У браузера несколько источников и очередей задач; Event Loop выбирает подходящую задачу, обрабатывает microtasks и может обновить изображение. Поэтому две macro из разных источников не всегда имеют гарантированный порядок.</p>
+    <p><strong>Один и тот же callback</strong> может выполняться по-разному. <code>button.addEventListener("click", fn)</code> регистрирует функцию. Реальный пользовательский клик обрабатывается асинхронно как task, а <code>button.click()</code> или <code>dispatchEvent()</code> из JS вызывают обработчики синхронно в текущем стеке.</p>
+    <p><strong>Сервер — отдельная среда.</strong> У Node.js свой Event Loop с фазами и API <code>process.nextTick</code>, <code>setImmediate</code>. Здесь разбираем браузер; Node.js есть ниже в разделе Fullstack.</p>
+  </section>
+
   <section id="types">
     <h2>Что macro, что micro и почему</h2>
     <div class="tablewrap"><table>
@@ -388,10 +410,16 @@ items.forEach((el, i) => { el.style.height = heights[i] + 10 + "px"; });</pre>
         <tr><td><code>setTimeout</code>, <code>setInterval</code></td><td class="m">macro</td><td>истёк таймер</td></tr>
         <tr><td><code>MessageChannel</code>, <code>postMessage</code></td><td class="m">macro</td><td>доставка сообщения</td></tr>
         <tr><td>Ответ сети</td><td class="m">macro</td><td>сеть, эта задача резолвит промис <code>fetch</code></td></tr>
-        <tr><td><code>.then</code>, <code>.catch</code>, код после <code>await</code></td><td class="u">micro</td><td>текущий код завершил шаг</td></tr>
+        <tr><td><code>.then</code>, <code>.catch</code>, <code>.finally</code>, продолжение после обычного <code>await</code></td><td class="u">micro</td><td>реакция на завершение Promise; сам executor <code>new Promise(...)</code> выполняется синхронно</td></tr>
+        <tr><td><code>fetch(...).then(fn)</code></td><td class="u">micro</td><td>сетевой ответ обрабатывается браузером; <code>fn</code> — Promise reaction, а не отдельная «fetch macro»</td></tr>
         <tr><td><code>queueMicrotask</code></td><td class="u">micro</td><td>текущий код</td></tr>
-        <tr><td><code>MutationObserver</code></td><td class="u">micro</td><td>текущий код изменил DOM</td></tr>
-        <tr><td><code>requestAnimationFrame</code></td><td class="f">ни то, ни другое</td><td>отдельный список, шаг отрисовки</td></tr>
+        <tr><td><code>MutationObserver</code></td><td class="u">micro</td><td>уведомление об изменениях DOM; несколько изменений могут прийти одним callback</td></tr>
+        <tr><td><code>IntersectionObserver</code></td><td class="m">macro</td><td>уведомление о пересечении/видимости доставляется отдельной task</td></tr>
+        <tr><td><code>scheduler.postTask(fn)</code></td><td class="m">macro</td><td>планирует task с приоритетом; доступность API зависит от браузера</td></tr>
+        <tr><td><code>await scheduler.yield()</code></td><td class="m">macro*</td><td>уступает управление; продолжение запланировано как приоритетная task, а не обычная Promise microtask</td></tr>
+        <tr><td><code>requestAnimationFrame</code></td><td class="f">фаза кадра</td><td>отдельный список callback перед отрисовкой</td></tr>
+        <tr><td><code>ResizeObserver</code></td><td class="f">фаза кадра</td><td>уведомляет об изменении размеров в ходе обновления рендеринга, до paint</td></tr>
+        <tr><td><code>requestIdleCallback</code></td><td class="f">idle</td><td>callback в свободное время браузера (или при достижении timeout)</td></tr>
       </tbody>
     </table></div>
     <div class="why">
@@ -404,7 +432,8 @@ items.forEach((el, i) => { el.style.height = heights[i] + 10 + "px"; });</pre>
         <p>Это продолжение уже идущей работы. Пока цепочка <code>.then</code> не закончилась, ни клик, ни кадр не вклинятся и не увидят состояние наполовину. Цена: бесконечная цепочка microtasks заморозит страницу.</p>
       </div>
     </div>
-    <p class="gap">Правило для запоминания: <strong>macro приходит снаружи, micro доделывает начатое.</strong> В спецификации macro называется просто task.</p>
+    <p class="gap"><strong>Правило для запоминания:</strong> task (macro) — отдельный запуск работы; microtask — продолжение до следующей task. Но <code>rAF</code>, <code>ResizeObserver</code> и <code>requestIdleCallback</code> привязаны к другим этапам, а не к отдельным «третьей» или «четвёртой» очередям micro/macro. В спецификации macrotask называется <code>task</code>.</p>
+    <p>* В <code>scheduler.yield()</code> возвращается Promise, но браузер планирует продолжение как приоритетную task; это важное отличие от <code>await Promise.resolve()</code>.</p>
   </section>
 
   <section id="source">
